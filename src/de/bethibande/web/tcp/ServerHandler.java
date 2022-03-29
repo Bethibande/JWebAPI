@@ -85,6 +85,7 @@ public class ServerHandler implements HttpHandler {
                             int read;
                             byte[] buffer = new byte[this.server.getBufferSize()];
                             while((read = in.read(buffer)) > 0) {
+                                exchange.getResponseHeaders().add("Content-Type", "*");
                                 exchange.getResponseBody().write(ArrayUtils.trim(buffer, 0, read));
 
                                 readTotal += read;
@@ -96,6 +97,7 @@ public class ServerHandler implements HttpHandler {
                         }
 
                         String json = new Gson().toJson(obj);
+                        exchange.getResponseHeaders().add("Content-Type", "text/json");
                         exchange.sendResponseHeaders(200, json.getBytes(StandardCharsets.UTF_8).length);
                         exchange.getResponseBody().write(json.getBytes(StandardCharsets.UTF_8));
                         exchange.close();

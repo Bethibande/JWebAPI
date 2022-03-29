@@ -24,7 +24,7 @@ public class TCPServer implements JWebServer {
     public JWebServer port(int port) {
         this.port = port;
         this.handlerManager = new HandlerManager();
-        this.processor = new StandardRequestProcessor();
+        this.processor = new StandardRequestProcessor(this);
         return this;
     }
 
