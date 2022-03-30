@@ -41,7 +41,7 @@ public class ServerHandler implements HttpHandler {
             if(uri.startsWith(s)) {
                 HandlerInstance h = this.server.getHandlerManager().getHandlers().get(handlerInstance.getUri());
                 for(String s2 : h.getMethods().keySet()) {
-                    if(uri.startsWith((s + "/" + s2).replaceAll("//", "/"))) {
+                    if(uri.matches(("^" + s + "/" + s2 + "[/]?").replaceAll("//", "/"))) {
                         MethodHandle mh = h.getMethods().get(s2);
                         Headers headers = exchange.getRequestHeaders();
                         String method = exchange.getRequestMethod();

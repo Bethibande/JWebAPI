@@ -11,14 +11,13 @@ public class JWebClient<T> {
     private ClientHandleManager clientHandleManager;
     private ClientHandler handler;
 
-    private final T instance;
+    private T instance;
 
     private int bufferSize = 1024;
 
-    private JWebClient(String baseUrl, ClientHandler handler, T instance) {
-        this.baseUrl = baseUrl;
-        this.handler = handler;
+    public JWebClient<T> setInstance(T instance) {
         this.instance = instance;
+        return this;
     }
 
     public T getInstance() {
@@ -61,10 +60,12 @@ public class JWebClient<T> {
     }
 
     public static <T> JWebClient<T> of(Class<T> clazz, String baseUrl) {
-        ClientHandler handler = new ClientHandler();
+        ClientHandler<T> handler = new ClientHandler<>();
         T instance = (T) Proxy.newProxyInstance(clazz.getClassLoader(), new Class[] {clazz}, handler);
 
-        JWebClient<T> client = new JWebClient<>(baseUrl, handler, instance);
+        JWebClient<T> client = new JWebClient<>();
+        client.setInstance(instance);
+        client.handler(handler);
         client.handle(clazz);
         client.baseUrl(baseUrl);
 

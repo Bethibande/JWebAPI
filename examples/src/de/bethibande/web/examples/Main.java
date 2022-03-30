@@ -1,14 +1,11 @@
 package de.bethibande.web.examples;
 
-import com.google.gson.Gson;
-
 import com.google.gson.GsonBuilder;
 import de.bethibande.web.JWebClient;
 import de.bethibande.web.JWebServer;
 import de.bethibande.web.response.StreamResponse;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 public class Main {
@@ -28,7 +25,11 @@ public class Main {
         byte[] buffer = sr.getStream().readAllBytes();
         System.out.println("File: " + new String(buffer, StandardCharsets.UTF_8));
 
-        server.stop();
+
+        boolean loginState = db.login("Max", "pw");
+        System.out.println("Login successful: " + loginState);
+
+        //server.stop();
     }
 
     public static void printAsJson(Object obj) {

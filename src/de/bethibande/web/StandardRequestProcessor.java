@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.sun.net.httpserver.Headers;
+import de.bethibande.web.annotations.FieldName;
 import de.bethibande.web.annotations.HeaderField;
 import de.bethibande.web.annotations.JsonData;
 import de.bethibande.web.annotations.QueryField;
@@ -148,10 +149,20 @@ public class StandardRequestProcessor implements RequestProcessor {
                 continue;
             }
 
-            if(jobj != null && jobj.has(p.getName())) {
-                JsonElement el = jobj.get(p.getName());
-                values[i] = new Gson().fromJson(el, t);
-                continue;
+            if(jobj != null) {
+                if(p.isNamePresent() && jobj.has(p.getName())) {
+                    JsonElement el = jobj.get(p.getName());
+                    values[i] = new Gson().fromJson(el, t);
+                    continue;
+                }
+                if(p.isAnnotationPresent(FieldName.class)) {
+                    String name = p.getAnnotation(FieldName.class).value();
+                    if(jobj.has(name)) {
+                        JsonElement el = jobj.get(p.getAnnotation(FieldName.class).value());
+                        values[i] = new Gson().fromJson(el, t);
+                        continue;
+                    }
+                }
             }
 
             values[i] = ClassUtils.generateDefaultValue(t); // either null, false or 0, depending on the type

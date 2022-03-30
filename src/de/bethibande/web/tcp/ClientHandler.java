@@ -1,13 +1,16 @@
 package de.bethibande.web.tcp;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.sun.net.httpserver.HttpHandler;
 import de.bethibande.web.JWebClient;
+import de.bethibande.web.annotations.FieldName;
 import de.bethibande.web.annotations.HeaderField;
 import de.bethibande.web.annotations.JsonData;
 import de.bethibande.web.annotations.QueryField;
 import de.bethibande.web.handlers.ClientHandle;
 import de.bethibande.web.handlers.ClientHandleManager;
+import de.bethibande.web.handlers.HandleType;
 import de.bethibande.web.response.ServerResponse;
 import de.bethibande.web.response.StreamResponse;
 
@@ -24,15 +27,15 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
-public class ClientHandler implements InvocationHandler {
+public class ClientHandler<T> implements InvocationHandler {
 
-    private JWebClient client;
+    private JWebClient<T> client;
 
-    public void setClient(JWebClient client) {
+    public void setClient(JWebClient<T> client) {
         this.client = client;
     }
 
-    public JWebClient getClient() {
+    public JWebClient<T> getClient() {
         return client;
     }
 
@@ -40,6 +43,8 @@ public class ClientHandler implements InvocationHandler {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         ClientHandleManager manager = this.client.getClientHandleManager();
         ClientHandle handle = manager.get(method);
+        Gson gson = new Gson();
+
         if(handle == null) {
             System.err.println("[JWebAPI] error, no method handle found for method: " + method);
             return null;
@@ -51,6 +56,7 @@ public class ClientHandler implements InvocationHandler {
             uri = uri + (handle.getUri().startsWith("/") ? handle.getUri().substring(1): handle.getUri());
         } else uri = uri + (handle.getUri().startsWith("/") ? handle.getUri() : "/" + handle.getUri());
 
+        JsonObject jobj = handle.getType() == HandleType.JSON ? new JsonObject(): null;
         byte[] postData = null;
         InputStream st = null;
         String contentType = null;
@@ -79,6 +85,7 @@ public class ClientHandler implements InvocationHandler {
                     continue;
                 }
                 queryString.append(key + "=" + URLEncoder.encode(val.toString(), StandardCharsets.UTF_8) + "&");
+                continue;
             }
 
             if(p.isAnnotationPresent(JsonData.class)) {
@@ -102,10 +109,28 @@ public class ClientHandler implements InvocationHandler {
                 st = sr.getStream();
                 contentLength = sr.getLength();
                 contentType = sr.getContentType();
+                continue;
+            }
+
+            if(jobj != null) {
+                if(!p.isNamePresent()) {
+                    if(!p.isAnnotationPresent(FieldName.class)) {
+                        System.err.println("[JWebAPI] Found parameter for json mappings without @FieldName annotation and without name, please annotate field or enable field names in your compile config (javac -parameters option)");
+                    }
+                    jobj.add(p.getAnnotation(FieldName.class).value(), gson.toJsonTree(args[i]));
+                    continue;
+                }
+                jobj.add(p.getName(), gson.toJsonTree(args[i]));
             }
         }
 
         queryString.delete(queryString.length() - 1, queryString.length());
+
+        if(jobj != null) {
+            String js = jobj.toString();
+            postData = js.getBytes(StandardCharsets.UTF_8);
+            contentLength = postData.length;
+        }
 
         if(postData != null && st != null) {
             System.err.println("[JWebAPI] cannot send json data and stream in one request: " + method);

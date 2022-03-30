@@ -1,12 +1,15 @@
 package de.bethibande.web.examples;
 
+import de.bethibande.web.JsonMappings;
 import de.bethibande.web.URI;
+import de.bethibande.web.annotations.FieldName;
 import de.bethibande.web.annotations.QueryField;
 import de.bethibande.web.handlers.WebHandler;
 import de.bethibande.web.response.ServerResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.ThreadLocalRandom;
 
 @URI("/api")
 public class TestHandler implements WebHandler {
@@ -28,6 +31,20 @@ public class TestHandler implements WebHandler {
         public String getMessage() {
             return message;
         }
+    }
+
+    /**
+     * This will automatically turn the received post data into method parameters
+     * {"username":"usernameValue","password":"passwordValue"}
+     * the json fields will automatically be filled into the java parameters with the same name, if you are not using the javac -parameters option
+     * you need to annotate the json field name using @FieldName("...")
+     */
+    @URI("/login")
+    @JsonMappings
+    public static boolean login(@FieldName("username") String username, @FieldName("password") String password) {
+        System.out.println("Login: " + username + "; " + password);
+
+        return ThreadLocalRandom.current().nextBoolean();
     }
 
     @URI("/test")

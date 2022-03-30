@@ -4,11 +4,12 @@ import de.bethibande.web.handlers.HandlerManager;
 import de.bethibande.web.handlers.WebHandler;
 import de.bethibande.web.tcp.TCPServer;
 
-// TODO: protocol selection (TCP/UDP, UDP has no ssl support)
-// TODO: set server charset
+// TODO: clean and refactor client code (it's currently a mess)
+// TODO: set server/client charset
 // TODO: ssl encryption
 // TODO: field annotations: URIField(field) = get fields from uri, define uri fields within the uri annotation uri = (/test/{field-name})
 // TODO: field annotations: ContentLength = HeaderField(value = "Content-Length", def = "0")
+// TODO: field annotations: ContentType = HeaderField(value = "Content-Type, def = "text/plain")
 public interface JWebServer {
 
     /**
