@@ -142,7 +142,7 @@ public class StandardRequestProcessor implements RequestProcessor {
 
             if(p.isAnnotationPresent(ContentLength.class)) {
                 if(!(t == int.class || t == Integer.class)) {
-                    System.err.println("[JWebAPI] @ContentLength my only annotate parameters of the type int/Integer");
+                    System.err.println("[JWebAPI] @ContentLength may only annotate parameters of the type int/Integer");
                     continue;
                 }
 
@@ -152,6 +152,21 @@ public class StandardRequestProcessor implements RequestProcessor {
                 } else val = "0";
 
                 values[i] = Integer.parseInt(val);
+                continue;
+            }
+
+            if(p.isAnnotationPresent(HttpType.class)) {
+                if(t != String.class) {
+                    System.err.println("[JWebAPI] @HttpType may only annotate parameters of the type String");
+                    continue;
+                }
+
+                String val;
+                if(headers.containsKey("Content-Type")) {
+                    val = headers.getFirst("Content-Type");
+                } else val = "text/plain";
+
+                values[i] = val;
                 continue;
             }
 

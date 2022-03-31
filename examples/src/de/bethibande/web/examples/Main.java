@@ -29,7 +29,7 @@ public class Main {
         boolean loginState = db.login("Max", "pw");
         System.out.println("Login successful: " + loginState);
 
-        //server.stop();
+        server.stop();
     }
 
     public static void printAsJson(Object obj) {

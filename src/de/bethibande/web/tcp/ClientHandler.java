@@ -2,12 +2,8 @@ package de.bethibande.web.tcp;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.sun.net.httpserver.HttpHandler;
 import de.bethibande.web.JWebClient;
-import de.bethibande.web.annotations.FieldName;
-import de.bethibande.web.annotations.HeaderField;
-import de.bethibande.web.annotations.JsonData;
-import de.bethibande.web.annotations.QueryField;
+import de.bethibande.web.annotations.*;
 import de.bethibande.web.handlers.ClientHandle;
 import de.bethibande.web.handlers.ClientHandleManager;
 import de.bethibande.web.handlers.HandleType;
@@ -63,6 +59,7 @@ public class ClientHandler<T> implements InvocationHandler {
         HashMap<String, String> headerFields = new HashMap<>();
         StringBuilder queryString = new StringBuilder("?");
 
+        // loop over parameters, find query/header fields and post data
         for(int i = 0; i < method.getParameterTypes().length; i++) {
             Class<?> t = method.getParameterTypes()[i];
             Parameter p = method.getParameters()[i];
@@ -103,6 +100,18 @@ public class ClientHandler<T> implements InvocationHandler {
                 continue;
             }
 
+            if(p.isAnnotationPresent(HttpType.class)) {
+                if(t != String.class) {
+                    System.err.println("[JWebAPI] @ContentType may only annotate parameters of the type String");
+                    continue;
+                }
+                Object val = args[i];
+                if(val == null) val = "text/plain";
+
+                headerFields.put("Content-Type", val.toString());
+                continue;
+            }
+
             if(t == StreamResponse.class) {
                 StreamResponse sr = (StreamResponse) args[i];
                 st = sr.getStream();
@@ -139,14 +148,18 @@ public class ClientHandler<T> implements InvocationHandler {
         String url = uri + (queryString.length() > 1 ? queryString: "");
         URL u = new URL(url);
         HttpURLConnection con = (HttpURLConnection)u.openConnection();
+
+        // determine http method
         if(contentLength > 0) {
             con.setRequestMethod("POST");
             con.setFixedLengthStreamingMode(contentLength);
         } else con.setRequestMethod("GET");
 
+        // set content-type
         if(postData != null) con.setRequestProperty("Content-Type", "text/json");
         if(st != null) con.setRequestProperty("Content-Type", contentType);
 
+        // set custom header fields
         for(String key : headerFields.keySet()) {
             String val = headerFields.get(key);
             con.setRequestProperty(key, val);
@@ -155,6 +168,7 @@ public class ClientHandler<T> implements InvocationHandler {
         con.setDoOutput(true);
         con.connect();
 
+        // stream data
         OutputStream out = con.getOutputStream();
         if(postData != null) {
             long readTotal = 0;
@@ -180,6 +194,7 @@ public class ClientHandler<T> implements InvocationHandler {
             }
         }
 
+        // read data
         contentLength = con.getContentLengthLong();
         InputStream in = con.getInputStream();
 

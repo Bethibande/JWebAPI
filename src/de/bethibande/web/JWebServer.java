@@ -6,12 +6,8 @@ import de.bethibande.web.tcp.TCPServer;
 
 import java.nio.charset.Charset;
 
-// TODO: clean and refactor client code (it's currently a mess)
-// TODO: client documentation/comments
-// TODO: set server/client charset
 // TODO: ssl encryption
 // TODO: field annotations: URIField(field) = get fields from uri, define uri fields within the uri annotation uri = (/test/{field-name})
-// TODO: field annotations: ContentType = HeaderField(value = "Content-Type, def = "text/plain")
 public interface JWebServer {
 
     /**
