@@ -1,7 +1,7 @@
 package de.bethibande.web.examples;
 
-import de.bethibande.web.JsonMappings;
-import de.bethibande.web.URI;
+import de.bethibande.web.annotations.JsonMappings;
+import de.bethibande.web.annotations.URI;
 import de.bethibande.web.annotations.FieldName;
 import de.bethibande.web.annotations.QueryField;
 import de.bethibande.web.handlers.WebHandler;

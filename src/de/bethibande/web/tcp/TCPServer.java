@@ -9,12 +9,15 @@ import de.bethibande.web.handlers.WebHandler;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 public class TCPServer implements JWebServer {
 
     private int port = 0;
     private int backlog = 0;
     private int bufferSize = 1024;
+    private Charset charset = StandardCharsets.UTF_8;
 
     private HttpServer server;
     private HandlerManager handlerManager;
@@ -50,6 +53,17 @@ public class TCPServer implements JWebServer {
     public JWebServer bufferSize(int bufferSize) {
         this.bufferSize = bufferSize;
         return this;
+    }
+
+    @Override
+    public JWebServer charset(Charset charset) {
+        this.charset = charset;
+        return this;
+    }
+
+    @Override
+    public Charset getCharset() {
+        return this.charset;
     }
 
     @Override

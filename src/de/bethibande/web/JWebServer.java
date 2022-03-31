@@ -4,11 +4,13 @@ import de.bethibande.web.handlers.HandlerManager;
 import de.bethibande.web.handlers.WebHandler;
 import de.bethibande.web.tcp.TCPServer;
 
+import java.nio.charset.Charset;
+
 // TODO: clean and refactor client code (it's currently a mess)
+// TODO: client documentation/comments
 // TODO: set server/client charset
 // TODO: ssl encryption
 // TODO: field annotations: URIField(field) = get fields from uri, define uri fields within the uri annotation uri = (/test/{field-name})
-// TODO: field annotations: ContentLength = HeaderField(value = "Content-Length", def = "0")
 // TODO: field annotations: ContentType = HeaderField(value = "Content-Type, def = "text/plain")
 public interface JWebServer {
 
@@ -25,6 +27,19 @@ public interface JWebServer {
      * @return your server instance
      */
     JWebServer bufferSize(int bufferSize);
+
+    /**
+     * Change the charset used by the server, default StandardCharsets.UTF_8
+     * @param charset the new charset to use
+     * @return your server instance
+     */
+    JWebServer charset(Charset charset);
+
+    /**
+     * Get the server charset
+     * @return charset, default StandardCharsets.UTF_8
+     */
+    Charset getCharset();
 
     /**
      * Get the port your server is currently bound to

@@ -4,12 +4,15 @@ import de.bethibande.web.handlers.ClientHandleManager;
 import de.bethibande.web.tcp.ClientHandler;
 
 import java.lang.reflect.Proxy;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 public class JWebClient<T> {
 
     private String baseUrl;
     private ClientHandleManager clientHandleManager;
-    private ClientHandler handler;
+    private ClientHandler<T> handler;
+    private Charset charset = StandardCharsets.UTF_8;
 
     private T instance;
 
@@ -18,6 +21,15 @@ public class JWebClient<T> {
     public JWebClient<T> setInstance(T instance) {
         this.instance = instance;
         return this;
+    }
+
+    public JWebClient<T> charset(Charset charset) {
+        this.charset = charset;
+        return this;
+    }
+
+    public Charset getCharset() {
+        return this.charset;
     }
 
     public T getInstance() {
@@ -33,12 +45,12 @@ public class JWebClient<T> {
         return this;
     }
 
-    public JWebClient<T> handler(ClientHandler handler) {
+    public JWebClient<T> handler(ClientHandler<T> handler) {
         this.handler = handler;
         return this;
     }
 
-    public ClientHandler getHandler() {
+    public ClientHandler<T> getHandler() {
         return this.handler;
     }
 
@@ -59,15 +71,16 @@ public class JWebClient<T> {
         return this.baseUrl;
     }
 
+
     public static <T> JWebClient<T> of(Class<T> clazz, String baseUrl) {
         ClientHandler<T> handler = new ClientHandler<>();
         T instance = (T) Proxy.newProxyInstance(clazz.getClassLoader(), new Class[] {clazz}, handler);
 
         JWebClient<T> client = new JWebClient<>();
         client.setInstance(instance);
-        client.handler(handler);
-        client.handle(clazz);
-        client.baseUrl(baseUrl);
+        client.handler(handler)
+                .baseUrl(baseUrl)
+                .handle(clazz);
 
         handler.setClient(client);
 

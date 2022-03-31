@@ -24,7 +24,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 public class ClientHandler<T> implements InvocationHandler {
@@ -84,13 +83,13 @@ public class ClientHandler<T> implements InvocationHandler {
                 if(val instanceof Boolean) {
                     continue;
                 }
-                queryString.append(key + "=" + URLEncoder.encode(val.toString(), StandardCharsets.UTF_8) + "&");
+                queryString.append(key + "=" + URLEncoder.encode(val.toString(), this.client.getCharset()) + "&");
                 continue;
             }
 
             if(p.isAnnotationPresent(JsonData.class)) {
-                String js = new Gson().toJson(args[i]);
-                postData = js.getBytes(StandardCharsets.UTF_8);
+                String js = gson.toJson(args[i]);
+                postData = js.getBytes(this.client.getCharset());
                 contentLength = postData.length;
                 continue;
             }
@@ -128,7 +127,7 @@ public class ClientHandler<T> implements InvocationHandler {
 
         if(jobj != null) {
             String js = jobj.toString();
-            postData = js.getBytes(StandardCharsets.UTF_8);
+            postData = js.getBytes(this.client.getCharset());
             contentLength = postData.length;
         }
 
@@ -201,6 +200,6 @@ public class ClientHandler<T> implements InvocationHandler {
             if(readTotal >= contentLength) break;
         }
 
-        return new Gson().fromJson(new String(buff.array(), StandardCharsets.UTF_8), method.getReturnType());
+        return gson.fromJson(new String(buff.array(), this.client.getCharset()), method.getReturnType());
     }
 }

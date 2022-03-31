@@ -15,7 +15,6 @@ import de.bethibande.web.utils.ArrayUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 public class ServerHandler implements HttpHandler {
@@ -98,8 +97,8 @@ public class ServerHandler implements HttpHandler {
 
                         String json = new Gson().toJson(obj);
                         exchange.getResponseHeaders().add("Content-Type", "text/json");
-                        exchange.sendResponseHeaders(200, json.getBytes(StandardCharsets.UTF_8).length);
-                        exchange.getResponseBody().write(json.getBytes(StandardCharsets.UTF_8));
+                        exchange.sendResponseHeaders(200, json.getBytes(this.server.getCharset()).length);
+                        exchange.getResponseBody().write(json.getBytes(this.server.getCharset()));
                         exchange.close();
                         return;
                     }

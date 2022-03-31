@@ -4,10 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.sun.net.httpserver.Headers;
-import de.bethibande.web.annotations.FieldName;
-import de.bethibande.web.annotations.HeaderField;
-import de.bethibande.web.annotations.JsonData;
-import de.bethibande.web.annotations.QueryField;
+import de.bethibande.web.annotations.*;
 import de.bethibande.web.handlers.HandleType;
 import de.bethibande.web.handlers.MethodHandle;
 import de.bethibande.web.reflect.ClassUtils;
@@ -20,7 +17,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 public class StandardRequestProcessor implements RequestProcessor {
@@ -69,7 +65,7 @@ public class StandardRequestProcessor implements RequestProcessor {
         if(handle.getInputType() == HandleType.JSON) {
             if(!headers.containsKey("Content-Length") || headers.getFirst("Content-Length").equals("0")) return ServerResponse.httpStatusCode(405);
             int contentLength = Integer.parseInt(headers.getFirst("Content-Length"));
-            js = new String(readAll(in, contentLength).array(), StandardCharsets.UTF_8);
+            js = new String(readAll(in, contentLength).array(), this.server.getCharset());
             jobj = new Gson().fromJson(js, JsonObject.class);
         }
 
@@ -109,7 +105,7 @@ public class StandardRequestProcessor implements RequestProcessor {
 
                 ByteBuffer buff = js == null ? readAll(in, contentLength): null;
 
-                String json = js == null ? new String(buff.array(), StandardCharsets.UTF_8): js;
+                String json = js == null ? new String(buff.array(), this.server.getCharset()): js;
                 Object obj = new Gson().fromJson(json, t);
 
                 values[i] = obj;
@@ -141,6 +137,21 @@ public class StandardRequestProcessor implements RequestProcessor {
                 }
 
                 values[i] = obj;
+                continue;
+            }
+
+            if(p.isAnnotationPresent(ContentLength.class)) {
+                if(!(t == int.class || t == Integer.class)) {
+                    System.err.println("[JWebAPI] @ContentLength my only annotate parameters of the type int/Integer");
+                    continue;
+                }
+
+                String val;
+                if(headers.containsKey("Content-Length")) {
+                    val = headers.getFirst("Content-Length");
+                } else val = "0";
+
+                values[i] = Integer.parseInt(val);
                 continue;
             }
 

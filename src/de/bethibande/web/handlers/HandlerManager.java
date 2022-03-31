@@ -1,7 +1,7 @@
 package de.bethibande.web.handlers;
 
-import de.bethibande.web.JsonMappings;
-import de.bethibande.web.URI;
+import de.bethibande.web.annotations.JsonMappings;
+import de.bethibande.web.annotations.URI;
 import de.bethibande.web.reflect.ClassUtils;
 
 import java.io.InputStream;
