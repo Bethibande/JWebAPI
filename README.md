@@ -52,6 +52,6 @@ ApiClient.java
 ```java
 public interface ApiClient {
     @URI("/api/test")
-    Message getMessage(@QueryField(value = "name", def = "World") String name);
+    Message getTestMessage(@QueryField(value = "name", def = "World") String name);
 }
 ```
