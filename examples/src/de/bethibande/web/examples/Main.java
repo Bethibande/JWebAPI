@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
 public class Main {
 
     public static void main(String[] args) throws IOException {
-        JWebServer server = JWebServer.tcp(5566);
+        JWebServer server = JWebServer.of(5566);
         server.registerHandler(TestHandler.class);
         server.start();
 

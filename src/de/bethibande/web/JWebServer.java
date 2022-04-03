@@ -73,7 +73,12 @@ public interface JWebServer {
 
     HandlerManager getHandlerManager();
 
-    static JWebServer tcp(int port) {
+    /**
+     * Create a new server instance
+     * @param port the tcp port your server will bind to
+     * @return a new server instance
+     */
+    static JWebServer of(int port) {
         return new TCPServer().port(port);
     }
 
