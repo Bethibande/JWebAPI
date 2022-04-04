@@ -42,7 +42,7 @@ public class Message {
 ## Client
 Create client instance
 ```java
-JWebClient<Client> client = JWebClient.of(ApiClient.class, "http://127.0.0.1:5566");
+JWebClient<ApiClient> client = JWebClient.of(ApiClient.class, "http://127.0.0.1:5566");
 ApiClient db = client.getInstance();
 
 Message msg = db.getTestMessage("Max");
