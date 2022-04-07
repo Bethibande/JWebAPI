@@ -29,6 +29,9 @@ dependencies {
 </dependency>
 ```
 
+## Dependencies
+- Google Gson
+
 ## Example
 Full example [here](https://github.com/Bethibande/JWebAPI/tree/master/examples/src/com/bethibande/web/examples)
 
