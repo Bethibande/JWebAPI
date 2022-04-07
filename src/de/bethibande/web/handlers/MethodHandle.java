@@ -1,29 +1,45 @@
 package de.bethibande.web.handlers;
 
+import de.bethibande.web.regex.RegexMatcher;
+
 import java.lang.reflect.Method;
+import java.util.Map;
 
 public class MethodHandle {
 
-    private final String uri;
+    private final String uriRaw;
+    private final String uriCompiled;
     private final Method method;
     private final boolean isStatic;
     private final HandleType inputType;
     private final HandleType outputType;
 
-    public MethodHandle(String uri, Method method, boolean isStatic, HandleType inputType, HandleType outputType) {
-        this.uri = uri;
+    private final Map<Integer, FieldHandle> fieldHandles;
+
+    public MethodHandle(String uriRaw, Method method, boolean isStatic, Map<Integer, FieldHandle> handles, HandleType inputType, HandleType outputType) {
+        this.uriRaw = uriRaw;
+        this.uriCompiled = RegexMatcher.rawUriToRegex(uriRaw);
         this.method = method;
         this.isStatic = isStatic;
+        this.fieldHandles = handles;
         this.inputType = inputType;
         this.outputType = outputType;
     }
 
+    public String getUriRaw() {
+        return uriRaw;
+    }
+
     public String getUri() {
-        return uri;
+        return uriCompiled;
     }
 
     public Method getMethod() {
         return method;
+    }
+
+    public Map<Integer, FieldHandle> getFieldHandles() {
+        return fieldHandles;
     }
 
     public boolean isStatic() {

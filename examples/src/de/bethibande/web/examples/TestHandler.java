@@ -1,14 +1,13 @@
 package de.bethibande.web.examples;
 
-import de.bethibande.web.annotations.JsonMappings;
-import de.bethibande.web.annotations.URI;
-import de.bethibande.web.annotations.FieldName;
-import de.bethibande.web.annotations.QueryField;
+import de.bethibande.web.annotations.*;
 import de.bethibande.web.handlers.WebHandler;
 import de.bethibande.web.response.ServerResponse;
+import de.bethibande.web.struct.ServerRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.util.concurrent.ThreadLocalRandom;
 
 @URI("/api")
@@ -63,13 +62,38 @@ public class TestHandler implements WebHandler {
 
         try {
             InputStream in = TestHandler.class.getResourceAsStream("/test.html");
-            long len = in.available();
+            long len = in == null ? 0: in.available();
 
             return ServerResponse.stream(in, "text/html", len);
         } catch(IOException e) {
             e.printStackTrace();
             return ServerResponse.httpStatusCode(500);
         }
+    }
+
+    @URI("/error")
+    public static Object error() {
+        return ServerResponse.httpStatusCode(400);
+    }
+
+    @URI("/status/{statusCode:num}")
+    public Object upload(@URIField("statusCode") int id) {
+
+        System.out.println("error id: " + id);
+
+        return ServerResponse.httpStatusCode(id);
+    }
+
+    @URI("/test2/{name:string(3,16)}")
+    public static Object test2(@URIField("name") String name) {
+        return new Message(1, "Hello " + name + "!");
+    }
+
+    @URI("/localOnly") // 127.0.0.1 address only
+    public static Object localOnly(ServerRequest request) {
+        if(!request.canAccess(Accessors::localOnly)) return null;
+
+        return new Message(1, "Access Granted!");
     }
 
 }

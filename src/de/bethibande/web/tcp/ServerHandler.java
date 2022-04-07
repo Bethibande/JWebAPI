@@ -15,7 +15,9 @@ import de.bethibande.web.utils.ArrayUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.regex.Pattern;
 
 public class ServerHandler implements HttpHandler {
 
@@ -62,14 +64,22 @@ public class ServerHandler implements HttpHandler {
                             e.printStackTrace();
                         }
 
+                        if(obj == null) {
+                            exchange.sendResponseHeaders(200, -1);
+                            exchange.close();
+                            continue;
+                        }
 
                         if(obj instanceof ServerResponse) {
                             ServerResponse r = (ServerResponse) obj;
-                            for(String k : r.getHeaders().keySet()) {
-                                String v = r.getHeaders().get(k);
-                                exchange.getResponseHeaders().add(k, v);
+                            if(r.getHeaders() != null) {
+                                for (String k : r.getHeaders().keySet()) {
+                                    String v = r.getHeaders().get(k);
+                                    exchange.getResponseHeaders().add(k, v);
+                                }
                             }
-                            exchange.sendResponseHeaders(r.getStatusCode(), 0);
+                            //byte[] msg = ("{\"id\":" + r.getStatusCode() + "}").getBytes(this.server.getCharset());
+                            exchange.sendResponseHeaders(r.getStatusCode(), -1);
                             exchange.close();
                             return;
                         }
@@ -77,6 +87,7 @@ public class ServerHandler implements HttpHandler {
                         if(obj instanceof StreamResponse) {
                             InputStream in = ((StreamResponse) obj).getStream();
                             long length = ((StreamResponse) obj).getLength();
+                            length = length == 0 ? -1: length;
 
                             exchange.sendResponseHeaders(200, length);
 
@@ -96,8 +107,9 @@ public class ServerHandler implements HttpHandler {
                         }
 
                         String json = new Gson().toJson(obj);
+                        int length = json.getBytes(this.server.getCharset()).length;
                         exchange.getResponseHeaders().add("Content-Type", "text/json");
-                        exchange.sendResponseHeaders(200, json.getBytes(this.server.getCharset()).length);
+                        exchange.sendResponseHeaders(200, length == 0 ? -1: length);
                         exchange.getResponseBody().write(json.getBytes(this.server.getCharset()));
                         exchange.close();
                         return;
@@ -106,7 +118,7 @@ public class ServerHandler implements HttpHandler {
             }
         }
 
-        exchange.sendResponseHeaders(404, 0);
+        exchange.sendResponseHeaders(404, -1);
         exchange.close();
     }
 }

@@ -5,23 +5,27 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.sun.net.httpserver.Headers;
 import de.bethibande.web.annotations.*;
+import de.bethibande.web.handlers.FieldHandle;
 import de.bethibande.web.handlers.HandleType;
 import de.bethibande.web.handlers.MethodHandle;
 import de.bethibande.web.reflect.ClassUtils;
 import de.bethibande.web.response.ServerResponse;
+import de.bethibande.web.struct.ServerRequest;
+import de.bethibande.web.struct.URIFieldType;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 
 public class StandardRequestProcessor implements RequestProcessor {
 
-    private JWebServer server;
+    private final JWebServer server;
 
     public StandardRequestProcessor(JWebServer server) {
         this.server = server;
@@ -53,6 +57,7 @@ public class StandardRequestProcessor implements RequestProcessor {
 
     @Override
     public Object processRequest(InetSocketAddress sender, String uri, String method, InputStream in, Object instance, MethodHandle handle, HashMap<String, String> query, Headers headers) throws IOException {
+        ServerRequest request = new ServerRequest(uri, sender, headers, query, method, handle);
         Method m = handle.getMethod();
         Object[] values = new Object[m.getParameterTypes().length];
         String js = null;
@@ -91,8 +96,8 @@ public class StandardRequestProcessor implements RequestProcessor {
 
                 if(t == Boolean.class || t == boolean.class) {
                     if(val == null) obj = true;
-                    if(val.equals("true")) obj = true;
-                    if(!val.equals("true")) obj = false;
+                    if(val != null && val.equals("true")) obj = true;
+                    if(val != null && !val.equals("true")) obj = false;
                 }
 
                 values[i] = obj;
@@ -121,6 +126,13 @@ public class StandardRequestProcessor implements RequestProcessor {
                     val = headers.getFirst(h.value());
                 } else val = h.def();
 
+                if(h.value().equalsIgnoreCase("ipaddress") || h.value().equalsIgnoreCase("ipv4")) {
+                    if(t != String.class && t != InetAddress.class) {
+                        System.err.println("[JWebAPI] Header Field ipaddress/ipv4 may only have String or InetAddress type");
+                    }
+                    val = sender.getAddress().getHostAddress();
+                }
+
                 Object obj = null;
                 if(t == String.class) obj = val;
                 if(t == Byte.class || t == byte.class) obj = Byte.parseByte(val);
@@ -129,11 +141,12 @@ public class StandardRequestProcessor implements RequestProcessor {
                 if(t == Long.class || t == long.class) obj = Long.parseLong(val);
                 if(t == Double.class || t == double.class) obj = Double.parseDouble(val);
                 if(t == Float.class || t == float.class) obj = Float.parseFloat(val);
+                if(t == InetAddress.class) obj = InetAddress.getByName(val);
 
                 if(t == Boolean.class || t == boolean.class) {
                     if(val == null) obj = true;
-                    if(val.equals("true")) obj = true;
-                    if(!val.equals("true")) obj = false;
+                    if(val != null && val.equals("true")) obj = true;
+                    if(val != null && !val.equals("true")) obj = false;
                 }
 
                 values[i] = obj;
@@ -170,8 +183,75 @@ public class StandardRequestProcessor implements RequestProcessor {
                 continue;
             }
 
+            if(p.isAnnotationPresent(URIField.class)) {
+                URIField field = p.getAnnotation(URIField.class);
+                String id = field.value();
+                FieldHandle fh = null;
+
+                for(FieldHandle _fh : handle.getFieldHandles().values()) {
+                    if(!_fh.getName().equalsIgnoreCase(id)) continue;
+
+                    fh = _fh;
+                    break;
+                }
+
+                if(fh == null) {
+                    System.err.println("[JWebAPI] unknown uri field name: " + id);
+
+                    values[i] = null;
+                    continue;
+                }
+
+                String val = uri.split("/")[fh.getIndex()];
+                URIFieldType fieldType = fh.getType();
+
+                if(fieldType == URIFieldType.STRING && t == String.class) {
+                    values[i] = val;
+                    continue;
+                }
+                if(fieldType == URIFieldType.BOOLEAN && (t == boolean.class || t == Boolean.class)) {
+                    values[i] = Boolean.parseBoolean(val);
+                    continue;
+                }
+                if(fieldType == URIFieldType.DECIMAL && (t == double.class || t == Double.class || t == float.class || t == Float.class)) {
+                    if(t == float.class || t == Float.class) {
+                        values[i] = Float.parseFloat(val);
+                        continue;
+                    }
+                    if(t == double.class || t == Double.class) {
+                        values[i] = Double.parseDouble(val);
+                        continue;
+                    }
+                }
+                if(fieldType == URIFieldType.NUMBER && (t == int.class || t == Integer.class || t == short.class || t == Short.class || t == long.class || t == Long.class || t == byte.class || t == Byte.class)) {
+                    if(t == int.class || t == Integer.class) {
+                        values[i] = Integer.parseInt(val);
+                        continue;
+                    }
+                    if(t == short.class || t == Short.class) {
+                        values[i] = Short.parseShort(val);
+                        continue;
+                    }
+                    if(t == long.class || t == Long.class) {
+                        values[i] = Long.parseLong(val);
+                        continue;
+                    }
+                    if(t == byte.class || t == Byte.class) {
+                        values[i] = Byte.parseByte(val);
+                        continue;
+                    }
+                }
+
+                System.err.println("[JWebAPI] couldn't map value '" + val + "' to type '" + t.getName() + "'");
+            }
+
             if(t == InputStream.class) {
                 values[i] = in;
+                continue;
+            }
+
+            if(t == ServerRequest.class) {
+                values[i] = request;
                 continue;
             }
 
@@ -194,6 +274,7 @@ public class StandardRequestProcessor implements RequestProcessor {
             values[i] = ClassUtils.generateDefaultValue(t); // either null, false or 0, depending on the type
         }
 
-        return invoke(handle, instance, values);
+        Object val = invoke(handle, instance, values);
+        return request.getAccessStatus() ? val : ServerResponse.httpStatusCode(403);
     }
 }

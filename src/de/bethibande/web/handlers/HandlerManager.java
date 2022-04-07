@@ -3,11 +3,13 @@ package de.bethibande.web.handlers;
 import de.bethibande.web.annotations.JsonMappings;
 import de.bethibande.web.annotations.URI;
 import de.bethibande.web.reflect.ClassUtils;
+import de.bethibande.web.regex.RegexMatcher;
 
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
+import java.util.Map;
 
 public class HandlerManager {
 
@@ -33,11 +35,18 @@ public class HandlerManager {
 
             if(m.isAnnotationPresent(JsonMappings.class)) inputType = HandleType.JSON;
             for(Class<?> t : m.getParameterTypes()) {
-                if(t == InputStream.class) inputType = HandleType.STREAM;
+                if(t == InputStream.class) {
+                    inputType = HandleType.STREAM;
+                    break;
+                }
             }
 
-            MethodHandle handle = new MethodHandle(uri, m, Modifier.isStatic(m.getModifiers()), inputType, outputType);
-            methodHandles.put(uri, handle);
+            String jointUri = (classUri + "/" + uri).replaceAll("//|///", "/");
+            Integer[] indexes = RegexMatcher.getIndexes(jointUri);
+            Map<Integer, FieldHandle> handles = RegexMatcher.getUriFields(jointUri, indexes);
+
+            MethodHandle handle = new MethodHandle(uri, m, Modifier.isStatic(m.getModifiers()), handles, inputType, outputType);
+            methodHandles.put(handle.getUri() /* not the same as the uri passed into the constructor */, handle);
         }
 
         handlers.put(classUri, new HandlerInstance(classUri, instance, methodHandles));
