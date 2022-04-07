@@ -1,8 +1,38 @@
 # JWebAPI 1.0.0
 A simple framework for easily creating simple http servers/clients<br>
+
+## Download
+Download latest build [here](https://github.com/Bethibande/maven-repos/blob/main/de/bethibande/jwebapi/1.0.0/jwebapi-1.0.0.jar)
+### Gradle
+```gradle
+repositories {
+    mavenCentral()
+
+    maven { url "https://github.com/Bethibande/maven-repos/raw/main" }
+}
+
+dependencies {
+    implementation 'de.bethibande:jwebapi:1.0.0'
+}
+```
+### Maven
+```xml
+<repository>
+    <id>de.bethibande</id>
+    <url>https://github.com/Bethibande/maven-repos/raw/main</url>
+</repository>
+
+<dependency>
+    <groupId>de.bethibande</groupId>
+    <artifactId>jwebapi</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+## Example
 Full example [here](https://github.com/Bethibande/JWebAPI/tree/master/examples/src/com/bethibande/web/examples)
 
-## Server
+### Server
 Create the server
 ```java
 JWebServer server = JWebServer.of(5566);
@@ -39,7 +69,7 @@ public class Message {
 }
 ```
 
-## Client
+### Client
 Create client instance
 ```java
 JWebClient<ApiClient> client = JWebClient.of(ApiClient.class, "http://127.0.0.1:5566");
