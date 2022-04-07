@@ -1,6 +1,6 @@
-# JWebAPI 0.9.7
+# JWebAPI 1.0.0
 A simple framework for easily creating simple http servers/clients<br>
-Full example [here](https://github.com/Bethibande/JWebAPI/tree/master/examples/src/de/bethibande/web/examples)
+Full example [here](https://github.com/Bethibande/JWebAPI/tree/master/examples/src/com/bethibande/web/examples)
 
 ## Server
 Create the server
