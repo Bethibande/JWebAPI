@@ -275,6 +275,6 @@ public class StandardRequestProcessor implements RequestProcessor {
         }
 
         Object val = invoke(handle, instance, values);
-        return request.getAccessStatus() ? val : ServerResponse.httpStatusCode(403);
+        return request.getAccessStatus() ? val : ServerResponse.httpStatusCode(511);
     }
 }

@@ -17,6 +17,7 @@ public class TCPServer implements JWebServer {
     private int port = 0;
     private int backlog = 0;
     private int bufferSize = 1024;
+    private String bindAddress = "0.0.0.0";
     private Charset charset = StandardCharsets.UTF_8;
 
     private HttpServer server;
@@ -28,6 +29,12 @@ public class TCPServer implements JWebServer {
         this.port = port;
         this.handlerManager = new HandlerManager();
         this.processor = new StandardRequestProcessor(this);
+        return this;
+    }
+
+    @Override
+    public JWebServer bindAddress(String bindAddress) {
+        this.bindAddress = bindAddress;
         return this;
     }
 
@@ -72,6 +79,11 @@ public class TCPServer implements JWebServer {
     }
 
     @Override
+    public String getBindAddress() {
+        return this.bindAddress;
+    }
+
+    @Override
     public int getBufferSize() {
         return this.bufferSize;
     }
@@ -80,7 +92,7 @@ public class TCPServer implements JWebServer {
     public void start() {
         if(isAlive()) stop();
         try {
-            server = HttpServer.create(new InetSocketAddress("localhost", this.port), this.backlog);
+            server = HttpServer.create(new InetSocketAddress(this.bindAddress, this.port), this.backlog);
             server.createContext("/", new ServerHandler(this));
             server.setExecutor(null);
             server.start();

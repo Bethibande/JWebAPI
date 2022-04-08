@@ -18,6 +18,13 @@ public interface JWebServer {
     JWebServer port(int port);
 
     /**
+     * Set the bind address for the socket like (127.0.0.1, 0.0.0.0, 1.1.1.1 [...]), default value is 0.0.0.0
+     * @param bindAddress the address to bind to
+     * @return your server instance
+     */
+    JWebServer bindAddress(String bindAddress);
+
+    /**
      * Change the buffer size of your server, the default value is 1024
      * @param bufferSize the buffer size
      * @return your server instance
@@ -42,6 +49,12 @@ public interface JWebServer {
      * @return the server port
      */
     int getPort();
+
+    /**
+     * Get the current bind address the socket will bind to (127.0.0.1, 0.0.0.0, 1.1.1.1 [...]), default value is 0.0.0.0
+     * @return
+     */
+    String getBindAddress();
 
     /**
      * Get the buffer size of your server, change using JWebServer.bufferSize();
