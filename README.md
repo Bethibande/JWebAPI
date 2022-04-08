@@ -1,6 +1,11 @@
 # JWebAPI 1.0.1
 A simple framework for easy creation of simple http servers/clients<br>
 
+## Overview
+- [Download](#download)
+- [Dependencies](#dependencies)
+- [Example](#example)
+
 ## Download
 Download latest build [here](https://github.com/Bethibande/maven-repos/blob/main/de/bethibande/jwebapi/1.0.1/jwebapi-1.0.1.jar)
 ### Gradle
