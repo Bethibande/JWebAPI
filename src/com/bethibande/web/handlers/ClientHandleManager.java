@@ -3,6 +3,7 @@ package com.bethibande.web.handlers;
 import com.bethibande.web.annotations.JsonMappings;
 import com.bethibande.web.annotations.QueryField;
 import com.bethibande.web.annotations.URI;
+import com.bethibande.web.response.StreamResponse;
 
 import java.io.InputStream;
 import java.lang.reflect.Method;
@@ -49,7 +50,7 @@ public class ClientHandleManager {
                 Parameter p = method.getParameters()[i];
 
                 if(p.isAnnotationPresent(QueryField.class)) query.add(i);
-                if(t == InputStream.class) inputType = HandleType.STREAM;
+                if(t == StreamResponse.class) inputType = HandleType.STREAM;
             }
 
             handles.put(method, new ClientHandle(method, inputType, uri, query));

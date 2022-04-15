@@ -17,7 +17,7 @@ public interface ServerResponse {
     }
 
     static StreamResponse stream(InputStream stream, long length) {
-        return new StreamResponse("text", stream, length);
+        return new StreamResponse("text/plain", stream, length);
     }
     static StreamResponse stream(InputStream stream, String contentType, long length) {
         return new StreamResponse(contentType, stream, length);

@@ -115,8 +115,8 @@ public class StandardRequestProcessor implements RequestProcessor {
 
                 values[i] = obj;
                 continue;
-            } else if(handle.getInputType() == HandleType.STREAM) {
-                System.err.println("[JWebAPI] Invalid method handle, @JsonData and InputStream parameter in one method");
+            } else if(p.isAnnotationPresent(JsonData.class) && handle.getInputType() == HandleType.STREAM) {
+                System.err.println("[JWebAPI] Invalid method handle, @JsonData and InputStream parameter in one method, in class " + m.getClass().getName());
             }
 
             if(p.isAnnotationPresent(HeaderField.class)) {
@@ -154,8 +154,8 @@ public class StandardRequestProcessor implements RequestProcessor {
             }
 
             if(p.isAnnotationPresent(ContentLength.class)) {
-                if(!(t == int.class || t == Integer.class)) {
-                    System.err.println("[JWebAPI] @ContentLength may only annotate parameters of the type int/Integer");
+                if(!(t == int.class || t == Integer.class || t == Long.class || t == long.class)) {
+                    System.err.println("[JWebAPI] @ContentLength may only annotate parameters of the type int/Integer or long/Long");
                     continue;
                 }
 
@@ -177,7 +177,7 @@ public class StandardRequestProcessor implements RequestProcessor {
                 String val;
                 if(headers.containsKey("Content-Type")) {
                     val = headers.getFirst("Content-Type");
-                } else val = "text/plain";
+                } else val = null;
 
                 values[i] = val;
                 continue;

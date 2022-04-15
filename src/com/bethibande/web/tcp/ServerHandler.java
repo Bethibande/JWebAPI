@@ -83,17 +83,18 @@ public class ServerHandler implements HttpHandler {
                         }
 
                         if(obj instanceof StreamResponse) {
-                            InputStream in = ((StreamResponse) obj).getStream();
-                            long length = ((StreamResponse) obj).getLength();
+                            StreamResponse str = (StreamResponse)obj;
+                            InputStream in = str.getStream();
+                            long length = str.getLength();
                             length = length == 0 ? -1: length;
 
+                            exchange.getResponseHeaders().add("Content-Type", str.getContentType());
                             exchange.sendResponseHeaders(200, length);
 
                             long readTotal = 0;
                             int read;
                             byte[] buffer = new byte[this.server.getBufferSize()];
                             while((read = in.read(buffer)) > 0) {
-                                exchange.getResponseHeaders().add("Content-Type", "*");
                                 exchange.getResponseBody().write(ArrayUtils.trim(buffer, 0, read));
 
                                 readTotal += read;
