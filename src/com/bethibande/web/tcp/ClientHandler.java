@@ -84,6 +84,13 @@ public class ClientHandler<T> implements InvocationHandler {
                 continue;
             }
 
+            if(p.isAnnotationPresent(URIField.class)) {
+                String field = p.getAnnotation(URIField.class).value();
+                String str = args[i].toString();
+
+                uri = uri.replaceAll("\\{" + field + "}", str);
+            }
+
             if(p.isAnnotationPresent(JsonData.class)) {
                 String js = gson.toJson(args[i]);
                 postData = js.getBytes(this.client.getCharset());
@@ -165,12 +172,17 @@ public class ClientHandler<T> implements InvocationHandler {
             con.setRequestProperty(key, val);
         }
 
-        con.setDoOutput(true);
+        if(method.getReturnType() != StreamResponse.class) {
+            con.setRequestProperty("Accept", "application/json");
+        }
+        con.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36");
+
+        if(contentLength > 0) con.setDoOutput(true);
         con.connect();
 
         // stream data
-        OutputStream out = con.getOutputStream();
         if(postData != null) {
+            OutputStream out = con.getOutputStream();
             long readTotal = 0;
             int read;
             ByteArrayInputStream in = new ByteArrayInputStream(postData);
@@ -183,6 +195,7 @@ public class ClientHandler<T> implements InvocationHandler {
             }
         }
         if(st != null) {
+            OutputStream out = con.getOutputStream();
             long readTotal = 0;
             int read;
             byte[] buffer = new byte[this.client.getBufferSize()];
@@ -198,7 +211,7 @@ public class ClientHandler<T> implements InvocationHandler {
         contentLength = con.getContentLengthLong();
         InputStream in = con.getInputStream();
 
-        if(contentLength <= 0) return null;
+        if(contentLength <= 0 && contentLength != -1) return null;
 
         if(method.getReturnType() == StreamResponse.class) {
             return ServerResponse.stream(in, con.getContentType(), contentLength);

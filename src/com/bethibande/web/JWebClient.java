@@ -1,9 +1,17 @@
 package com.bethibande.web;
 
 import com.bethibande.web.handlers.ClientHandleManager;
+import com.bethibande.web.response.ServerResponse;
+import com.bethibande.web.response.StreamResponse;
 import com.bethibande.web.tcp.ClientHandler;
+import com.google.gson.Gson;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Proxy;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -140,6 +148,40 @@ public class JWebClient<T> {
         handler.setClient(client);
 
         return client;
+    }
+
+    public static <T> T getJsonData(String url, Class<T> clazz) {
+        try {
+            URL u = new URL(url);
+            HttpURLConnection con = (HttpURLConnection)u.openConnection();
+            con.connect();
+
+            // read data
+            long contentLength = con.getContentLengthLong();
+            InputStream in = con.getInputStream();
+
+            if(contentLength <= 0 && contentLength != -1) return null;
+
+            if(clazz == StreamResponse.class) {
+                return (T) ServerResponse.stream(in, con.getContentType(), contentLength);
+            }
+
+            ByteBuffer buff = ByteBuffer.allocate((int)contentLength);
+            long readTotal = 0;
+            int read;
+            byte[] buffer = new byte[4096];
+            while((read = in.read(buffer)) > 0) {
+                buff.put(buffer, 0, read);
+
+                readTotal += read;
+                if(readTotal >= contentLength) break;
+            }
+
+            return new Gson().fromJson(new String(buff.array(), StandardCharsets.UTF_8), clazz);
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 }

@@ -33,7 +33,8 @@ public class RegexMatcher {
             if(len != null) len = len.substring(1, len.length()-1);
 
             if(type.matches("string|text")) {
-                uri = uri.replace(full, "[a-zA-z0-9-_]" + (len != null ? "{"+len+"}": "+"));
+                //uri = uri.replace(full, "[a-zA-z0-9-_]" + (len != null ? "{"+len+"}": "+"));
+                uri = uri.replace(full, "[^/]" + (len != null ? "{"+len+"}": "+"));
             }
             if(type.matches("number|num")) {
                 uri = uri.replace(full, "[-+]?(\\d)" + (len != null ? "{"+len+"}": "+"));

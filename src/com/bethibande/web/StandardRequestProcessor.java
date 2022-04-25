@@ -153,6 +153,20 @@ public class StandardRequestProcessor implements RequestProcessor {
                 continue;
             }
 
+            if(p.isAnnotationPresent(IPAddress.class)) {
+                if(!(t == String.class || t == InetAddress.class)) {
+                    System.err.println("[JWebAPI] @IPV4 annotation may only annotate String or InetAddress parameter types");
+                    continue;
+                }
+
+                if(t == String.class) {
+                    values[i] = sender.getAddress().getHostAddress();
+                    continue;
+                }
+                values[i] = sender.getAddress();
+                continue;
+            }
+
             if(p.isAnnotationPresent(ContentLength.class)) {
                 if(!(t == int.class || t == Integer.class || t == Long.class || t == long.class)) {
                     System.err.println("[JWebAPI] @ContentLength may only annotate parameters of the type int/Integer or long/Long");

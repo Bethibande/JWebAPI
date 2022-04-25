@@ -14,6 +14,7 @@ import com.bethibande.web.response.ServerResponse;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.util.HashMap;
 
@@ -33,6 +34,16 @@ public class ServerHandler implements HttpHandler {
     public void handle(HttpExchange exchange) throws IOException {
         URI u = exchange.getRequestURI();
         String uri = u.getPath();
+
+        exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+
+        if(exchange.getRequestMethod().equalsIgnoreCase("OPTIONS")) {
+            exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "*");
+            exchange.getResponseHeaders().add("Allow", "OPTIONS, POST, GET");
+            exchange.getResponseHeaders().add("Accept", "*");
+            exchange.sendResponseHeaders(200, -1);
+            return;
+        }
 
         for(HandlerInstance handlerInstance : this.server.getHandlerManager().getHandlers().values()) {
             String s = handlerInstance.getUri();
