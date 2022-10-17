@@ -10,6 +10,11 @@ import java.util.Date;
 
 public class TestHandler {
 
+    @URI(value = "/", type = URI.URIType.STRING) // 404 Not found entry, not working, needs something like a priority
+    public Message notFound() {
+        return Message.MessageType.NOT_FOUND.toMessage();
+    }
+
     @URI("/")
     public Object helloWorld() {
         return Message.MessageType.HELLO_WORLD.toMessage();

@@ -4,7 +4,8 @@ public class Message {
 
     public enum MessageType {
         HELLO_WORLD(1, "Hello World!"),
-        TEST(2, "Test URI");
+        TEST(2, "Test URI"),
+        NOT_FOUND(404, "Not Found");
 
         private final int id;
         private final String message;
