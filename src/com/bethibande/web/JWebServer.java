@@ -1,98 +1,225 @@
 package com.bethibande.web;
 
-import com.bethibande.web.handlers.HandlerManager;
-import com.bethibande.web.handlers.WebHandler;
-import com.bethibande.web.tcp.TCPServer;
+import com.bethibande.web.annotations.URI;
+import com.bethibande.web.cache.Cache;
+import com.bethibande.web.cache.CacheLifetimeType;
+import com.bethibande.web.cache.CachedRequest;
+import com.bethibande.web.handlers.InstanceMethodHandler;
+import com.bethibande.web.handlers.MethodHandler;
+import com.bethibande.web.handlers.StaticMethodHandler;
+import com.bethibande.web.handlers.http.HttpHandler;
+import com.bethibande.web.handlers.out.ObjectOutputHandler;
+import com.bethibande.web.handlers.out.OutputHandler;
+import com.bethibande.web.handlers.out.RequestResponseOutputHandler;
+import com.bethibande.web.io.ByteArrayWriter;
+import com.bethibande.web.io.OutputWriter;
+import com.bethibande.web.processors.ParameterProcessor;
+import com.bethibande.web.response.RequestResponse;
+import com.bethibande.web.sessions.Session;
+import com.bethibande.web.util.ReflectUtils;
+import com.sun.net.httpserver.HttpServer;
 
-import java.nio.charset.Charset;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.net.InetSocketAddress;
+import java.security.InvalidParameterException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
-// TODO: ssl encryption
-// TODO: field annotations: URIField(field) = get fields from uri, define uri fields within the uri annotation uri = (/test/{field-name})
-public interface JWebServer {
+public class JWebServer {
+
+    private InetSocketAddress bindAddress;
+
+    private HttpServer server;
+
+    private Cache<UUID, Session> sessionCache;
+    private Cache<String, CachedRequest> globalRequestCache;
+
+    private List<ParameterProcessor> processors = new ArrayList<>();
+    private HashMap<URI, MethodHandler> methods = new HashMap<>();
+    private HashMap<Class<?>, Class<? extends OutputHandler<?>>> outputHandlers = new HashMap<>();
+    private HashMap<Class<?>, Class<? extends OutputWriter>> writers = new HashMap<>();
+
+    public JWebServer() {
+        initValues();
+    }
+
+    private void initValues() {
+        bindAddress = new InetSocketAddress("0.0.0.0", 80);
+
+        sessionCache = new Cache<UUID, Session>()
+                .withLifetimeType(CacheLifetimeType.ON_ACCESS)
+                .withMaxLifetime(TimeUnit.MILLISECONDS.convert(10, TimeUnit.MINUTES));
+
+        globalRequestCache = new Cache<String, CachedRequest>()
+                .withLifetimeType(CacheLifetimeType.ON_CREATION)
+                .withMaxLifetime(60000L);
+
+        registerOutputHandler(Object.class, ObjectOutputHandler.class);
+        registerOutputHandler(RequestResponse.class, RequestResponseOutputHandler.class);
+
+        registerWriter(byte[].class, ByteArrayWriter.class);
+    }
+
+    public void handleOutput(RequestResponse response, WebRequest request) {
+        Object content = response.getContentData();
+        Class<? extends OutputHandler<?>> outputHandler = this.getOutputHandler(content.getClass());
+        if(outputHandler == null) outputHandler = this.getOutputHandler(Object.class);
+        if(outputHandler == null) throw new InvalidParameterException("There is no output handler that can handle this kind of output: '" + content.getClass() + "'!");
+
+        OutputHandler<Object> out = (OutputHandler<Object>) ReflectUtils.createInstance(outputHandler);
+        out.update(content, request);
+    }
+
+    public OutputWriter getWriter(Class<?> type) {
+        Class<? extends OutputWriter> writerClass = writers.get(type);
+        if(writerClass == null) return null;
+
+        return ReflectUtils.createInstance(writerClass);
+    }
+
+    public JWebServer withWriter(Class<?> type, Class<? extends OutputWriter> writer) {
+        registerWriter(type, writer);
+        return this;
+    }
+
+    public void registerWriter(Class<?> type, Class<? extends OutputWriter> writer) {
+        writers.put(type, writer);
+    }
+
+    public JWebServer withBindAddress(String address, int port) {
+        setBindAddress(new InetSocketAddress(address, port));
+        return this;
+    }
 
     /**
-     * Set the port of your server, only called before starting the server
-     * @param port the port your server will be bound to
-     * @return your server instance
+     * Binds to 0.0.0.0:port
      */
-    JWebServer port(int port);
+    public JWebServer withBindAddress(int port) {
+        setBindAddress(new InetSocketAddress("0.0.0.0", port));
+        return this;
+    }
 
-    /**
-     * Set the bind address for the socket like (127.0.0.1, 0.0.0.0, 1.1.1.1 [...]), default value is 0.0.0.0
-     * @param bindAddress the address to bind to
-     * @return your server instance
-     */
-    JWebServer bindAddress(String bindAddress);
+    public JWebServer withHandler(Class<?> handler) {
+        registerHandlerClass(handler);
+        return this;
+    }
 
-    /**
-     * Change the buffer size of your server, the default value is 1024
-     * @param bufferSize the buffer size
-     * @return your server instance
-     */
-    JWebServer bufferSize(int bufferSize);
+    public JWebServer withProcessor(ParameterProcessor processor) {
+        registerProcessor(processor);
+        return this;
+    }
 
-    /**
-     * Change the charset used by the server, default StandardCharsets.UTF_8
-     * @param charset the new charset to use
-     * @return your server instance
-     */
-    JWebServer charset(Charset charset);
+    public <T> JWebServer withOutputHandler(Class<T> type, Class<? extends OutputHandler<T>> handler) {
+        registerOutputHandler(type, handler);
+        return this;
+    }
 
-    /**
-     * Get the server charset
-     * @return charset, default StandardCharsets.UTF_8
-     */
-    Charset getCharset();
+    public <T> void registerOutputHandler(Class<T> type, Class<? extends OutputHandler<T>> handler) {
+        outputHandlers.put(type, handler);
+    }
 
-    /**
-     * Get the port your server is currently bound to
-     * @return the server port
-     */
-    int getPort();
+    public <T> Class<? extends OutputHandler<T>> getOutputHandler(Class<T> type) {
+        return (Class<? extends OutputHandler<T>>) outputHandlers.get(type);
+    }
 
-    /**
-     * Get the current bind address the socket will bind to (127.0.0.1, 0.0.0.0, 1.1.1.1 [...]), default value is 0.0.0.0
-     * @return
-     */
-    String getBindAddress();
+    public HashMap<Class<?>, Class<? extends OutputHandler<?>>> getOutputHandlers() {
+        return outputHandlers;
+    }
 
-    /**
-     * Get the buffer size of your server, change using JWebServer.bufferSize();
-     * @return the current buffer size
-     */
-    int getBufferSize();
+    public void registerProcessor(ParameterProcessor processor) {
+        processors.add(processor);
+    }
 
-    /**
-     * Start your web server, if the server is already running, it will call JWebServer.stop() and then start
-     */
-    void start();
+    public void registerHandlerClass(Class<?> handler) {
+        for(Method method : handler.getDeclaredMethods()) {
+            if(!method.isAnnotationPresent(URI.class)) continue;
 
-    /**
-     * Stop your webserver
-     */
-    void stop();
+            URI uri = method.getAnnotation(URI.class);
 
-    /**
-     * Check whether your web server is running or not
-     * @return true if your server is running
-     */
-    boolean isAlive();
+            if(method.getModifiers() == Modifier.STATIC) {
+                this.methods.put(uri, new StaticMethodHandler(method));
+            } else {
+                this.methods.put(uri, new InstanceMethodHandler(method));
+            }
+        }
+    }
 
-    /**
-     * Register a new server handler
-     * @param handler your web handler
-     */
-    void registerHandler(Class<? extends WebHandler> handler);
+    public InetSocketAddress getBindAddress() {
+        return bindAddress;
+    }
 
-    HandlerManager getHandlerManager();
+    public Cache<UUID, Session> getSessionCache() {
+        return sessionCache;
+    }
 
-    /**
-     * Create a new server instance
-     * @param port the tcp port your server will bind to
-     * @return a new server instance
-     */
-    static JWebServer of(int port) {
-        return new TCPServer().port(port);
+    public Cache<String, CachedRequest> getGlobalRequestCache() {
+        return globalRequestCache;
+    }
+
+    public List<ParameterProcessor> getProcessors() {
+        return processors;
+    }
+
+    public HashMap<URI, MethodHandler> getMethods() {
+        return methods;
+    }
+
+    public JWebServer withSessionCache(Cache<UUID, Session> cache) {
+        this.sessionCache = cache;
+        return this;
+    }
+
+    public JWebServer withGlobalRequestCache(Cache<String, CachedRequest> cache) {
+        this.globalRequestCache = cache;
+        return this;
+    }
+
+    public JWebServer withBindAddress(InetSocketAddress bindAddress) {
+        this.bindAddress = bindAddress;
+        return this;
+    }
+
+    public void setBindAddress(InetSocketAddress bindAddress) {
+        this.bindAddress = bindAddress;
+    }
+
+    public void setSessionCache(Cache<UUID, Session> sessionCache) {
+        this.sessionCache = sessionCache;
+    }
+
+    public void setGlobalRequestCache(Cache<String, CachedRequest> globalRequestCache) {
+        this.globalRequestCache = globalRequestCache;
+    }
+
+    public boolean isAlive() {
+        return server != null;
+    }
+
+    public void stop() {
+        server.stop(0);
+        server = null;
+    }
+
+    public void start() {
+        try {
+            HttpServer server = HttpServer.create(bindAddress, 100);
+            server.createContext("/", new HttpHandler(this));
+            start(server);
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void start(HttpServer server) {
+        if(isAlive()) stop();
+
+        this.server = server;
+        server.start();
     }
 
 }
