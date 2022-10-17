@@ -14,6 +14,7 @@ import com.bethibande.web.handlers.out.RequestResponseOutputHandler;
 import com.bethibande.web.io.ByteArrayWriter;
 import com.bethibande.web.io.OutputWriter;
 import com.bethibande.web.processors.ParameterProcessor;
+import com.bethibande.web.processors.PathAnnotationProcessor;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
 import com.bethibande.web.util.ReflectUtils;
@@ -29,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 public class JWebServer {
 
@@ -58,6 +60,8 @@ public class JWebServer {
         globalRequestCache = new Cache<String, CachedRequest>()
                 .withLifetimeType(CacheLifetimeType.ON_CREATION)
                 .withMaxLifetime(60000L);
+
+        registerProcessor(new PathAnnotationProcessor());
 
         registerOutputHandler(Object.class, ObjectOutputHandler.class);
         registerOutputHandler(RequestResponse.class, RequestResponseOutputHandler.class);
@@ -135,17 +139,21 @@ public class JWebServer {
         processors.add(processor);
     }
 
+    public void registerMethod(Method method) {
+        URI uri = method.getAnnotation(URI.class);
+
+        if(method.getModifiers() == Modifier.STATIC) {
+            this.methods.put(uri, new StaticMethodHandler(method));
+        } else {
+            this.methods.put(uri, new InstanceMethodHandler(method));
+        }
+    }
+
     public void registerHandlerClass(Class<?> handler) {
         for(Method method : handler.getDeclaredMethods()) {
             if(!method.isAnnotationPresent(URI.class)) continue;
 
-            URI uri = method.getAnnotation(URI.class);
-
-            if(method.getModifiers() == Modifier.STATIC) {
-                this.methods.put(uri, new StaticMethodHandler(method));
-            } else {
-                this.methods.put(uri, new InstanceMethodHandler(method));
-            }
+            registerMethod(method);
         }
     }
 

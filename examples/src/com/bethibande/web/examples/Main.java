@@ -1,6 +1,7 @@
 package com.bethibande.web.examples;
 
 import com.bethibande.web.JWebServer;
+import com.bethibande.web.annotations.URI;
 
 public class Main {
 

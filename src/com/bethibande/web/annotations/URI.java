@@ -11,8 +11,14 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.TYPE})
 public @interface URI {
 
+    public static enum URIType {
+        REGEX,
+        STRICT,
+        STRING;
+    }
+
     String value();
-    boolean strict() default true;
+    URIType type() default URIType.STRICT;
     RequestMethod[] methods() default RequestMethod.GET;
 
 }

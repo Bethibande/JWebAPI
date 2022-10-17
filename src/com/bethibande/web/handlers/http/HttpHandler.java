@@ -22,7 +22,10 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
     }
 
     public boolean matches(URI uri, WebRequest request) {
-        return request.getUri().getPath().equalsIgnoreCase(uri.value());
+        if(uri.type().equals(URI.URIType.STRICT)) return uri.value().equals(request.getUri().getPath());
+        if(uri.type().equals(URI.URIType.STRING)) return request.getUri().getPath().startsWith(uri.value());
+        if(uri.type().equals(URI.URIType.REGEX)) return request.getUri().getPath().matches(uri.value());
+        return false;
     }
 
     @Override
@@ -36,12 +39,13 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
                     timings.keyframe();
 
                     MethodHandler handler = owner.getMethods().get(uri);
+
+                    request.setMethod(handler.getMethod());
                     RequestResponse response = handler.invoke(request);
 
                     timings.keyframe();
 
                     if(response.getContentData() == null) {
-                        System.out.println(response.getContentData() + " " + request.getUri().getPath());
                         for(String key : response.getHeader().keySet()) {
                             exchange.getResponseHeaders().add(key, response.getHeader().get(key));
                         }

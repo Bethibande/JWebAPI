@@ -49,6 +49,7 @@ public class WebRequest {
 
     public void setMethod(Method method) {
         this.method = method;
+        this.methodInvocationParameters = new Object[method.getParameterCount()];
     }
 
     public void setMethodInvocationParameters(Object[] methodInvocationParameters) {
