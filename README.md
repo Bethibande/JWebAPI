@@ -38,7 +38,7 @@ dependencies {
 - Google Gson
 
 ## Example
-Full example [here](https://github.com/Bethibande/JWebAPI/tree/master/examples/src/com/bethibande/web/examples)
+~~Full example [here](https://github.com/Bethibande/JWebAPI/tree/master/examples/src/com/bethibande/web/examples)~~
 
 ### Server
 Create the server
