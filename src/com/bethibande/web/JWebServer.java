@@ -15,6 +15,8 @@ import com.bethibande.web.io.ByteArrayWriter;
 import com.bethibande.web.io.OutputWriter;
 import com.bethibande.web.processors.ParameterProcessor;
 import com.bethibande.web.processors.PathAnnotationProcessor;
+import com.bethibande.web.processors.ServerContextParameterProcessor;
+import com.bethibande.web.processors.SessionParameterProcessor;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
 import com.bethibande.web.util.ReflectUtils;
@@ -23,6 +25,7 @@ import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
@@ -30,8 +33,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
+// TODO: add supplier and delete hook to cache
+// TODO: config for caches, including user request cache -> maxLifetime, maxItems, supplier, deleteHook
 public class JWebServer {
 
     private InetSocketAddress bindAddress;
@@ -40,6 +44,7 @@ public class JWebServer {
 
     private Cache<UUID, Session> sessionCache;
     private Cache<String, CachedRequest> globalRequestCache;
+    private volatile long lastCacheUpdate = 0;
 
     private List<ParameterProcessor> processors = new ArrayList<>();
     private HashMap<URI, MethodHandler> methods = new HashMap<>();
@@ -62,11 +67,55 @@ public class JWebServer {
                 .withMaxLifetime(60000L);
 
         registerProcessor(new PathAnnotationProcessor());
+        registerProcessor(new SessionParameterProcessor());
+        registerProcessor(new ServerContextParameterProcessor());
 
         registerOutputHandler(Object.class, ObjectOutputHandler.class);
         registerOutputHandler(RequestResponse.class, RequestResponseOutputHandler.class);
 
         registerWriter(byte[].class, ByteArrayWriter.class);
+    }
+
+    public void updateCache() {
+        if(System.currentTimeMillis() - 1000L > lastCacheUpdate) {
+            sessionCache.update();
+            globalRequestCache.update();
+            lastCacheUpdate = System.currentTimeMillis();
+        }
+    }
+
+    public Session getSession(UUID sessionId) {
+        updateCache();
+        return sessionCache.get(sessionId);
+    }
+
+    public Session getSession(InetAddress owner) {
+        updateCache();
+        for(UUID sessionId : sessionCache.getAllKeys()) {
+            Session session = sessionCache.get(sessionId);
+            if(session.getOwner().equals(owner)) return session;
+        }
+        return null;
+    }
+
+    private UUID generateSessionId() {
+        UUID id = null;
+        while(id == null || sessionCache.hasKey(id)) {
+            id = UUID.randomUUID();
+        }
+        return id;
+    }
+
+    public Session generateSession(InetAddress owner) {
+        Session session = new Session(
+                generateSessionId(),
+                this,
+                owner
+        );
+
+        sessionCache.put(session.getSessionId(), session);
+
+        return session;
     }
 
     public void handleOutput(RequestResponse response, WebRequest request) {

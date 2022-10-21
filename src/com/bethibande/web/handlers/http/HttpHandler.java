@@ -1,12 +1,15 @@
 package com.bethibande.web.handlers.http;
 
 import com.bethibande.web.JWebServer;
+import com.bethibande.web.LocalServerContext;
+import com.bethibande.web.ServerContext;
 import com.bethibande.web.WebRequest;
 import com.bethibande.web.annotations.URI;
 import com.bethibande.web.handlers.MethodHandler;
 import com.bethibande.web.io.OutputWriter;
 import com.bethibande.web.performance.TimingGenerator;
 import com.bethibande.web.response.RequestResponse;
+import com.bethibande.web.sessions.Session;
 import com.sun.net.httpserver.HttpExchange;
 
 public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
@@ -32,7 +35,17 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
     public void handle(HttpExchange exchange) {
         try {
             timings.start();
-            WebRequest request = new WebRequest(owner, exchange);
+            final WebRequest request = new WebRequest(owner, exchange);
+
+            Session session = owner.getSession(exchange.getRemoteAddress().getAddress());
+            if(session == null) session = owner.generateSession(exchange.getRemoteAddress().getAddress());
+
+            LocalServerContext.setContext(new ServerContext(
+                    owner,
+                    session,
+                    exchange,
+                    request
+            ));
 
             for(URI uri : owner.getMethods().keySet()) {
                 if(matches(uri, request)) {
@@ -45,11 +58,14 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
 
                     timings.keyframe();
 
+                    // TODO: somehow get rid of this if block
                     if(response.getContentData() == null) {
                         exchange.getResponseHeaders().putAll(response.getHeader());
 
                         exchange.sendResponseHeaders(response.getStatusCode(), 0);
                         exchange.close();
+
+                        LocalServerContext.clearContext();
                         return;
                     }
 
@@ -58,6 +74,7 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
 
                     timings.keyframe();
 
+                    response.withCookie("WebSessionId", session.getSessionId().toString());
                     exchange.getResponseHeaders().putAll(response.getHeader());
 
                     exchange.sendResponseHeaders(response.getStatusCode(), response.getContentLength());
@@ -82,5 +99,7 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
         } catch(Throwable th) {
             th.printStackTrace();
         }
+
+        LocalServerContext.clearContext();
     }
 }

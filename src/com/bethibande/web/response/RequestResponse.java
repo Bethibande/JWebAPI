@@ -5,9 +5,9 @@ import com.sun.net.httpserver.Headers;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class RequestResponse {
 
@@ -29,6 +29,22 @@ public class RequestResponse {
      * Object, will be serialized as json text
      */
     private Object contentData;
+
+    /**
+     * @see #setCookie(String, String, long)
+     */
+    public RequestResponse withCookie(String cookie, String value, long expirationDate) {
+        setCookie(cookie, value, expirationDate);
+        return this;
+    }
+
+    /**
+     * @see #setCookie(String, String)
+     */
+    public RequestResponse withCookie(String cookie, String value) {
+        setCookie(cookie, value);
+        return this;
+    }
 
     public RequestResponse withCharset(Charset charset) {
         setCharset(charset);
@@ -73,6 +89,44 @@ public class RequestResponse {
     public RequestResponse withHeader(String key, Object value) {
         setHeader(key, value.toString());
         return this;
+    }
+
+    /**
+     * Set the Set-Cookie header, can create multiple Set-Cookie headers.
+     * Set the value to null, inorder to delete a cookie
+     * @param cookie the cookie name
+     * @param value the value of your cookie, null to delete cookie
+     * @param expirationDate unix timestamp in s, expiration date of your cookie
+     */
+    public void setCookie(String cookie, String value, long expirationDate) {
+        if(hasCookie(cookie)) deleteCookie(cookie);
+        if(value == null) return;
+
+        addHeader("Set-Cookie", cookie + "=" + value + "; Expires=" + new Date(expirationDate));
+    }
+
+    /**
+     * Set the Set-Cookie header, can create multiple Set-Cookie headers.
+     * Set the value to null, inorder to delete a cookie
+     * @param cookie the cookie name
+     * @param value the value of your cookie, null to delete cookie
+     */
+    public void setCookie(String cookie, String value) {
+        if(hasCookie(cookie)) deleteCookie(cookie);
+        if(value == null) return;
+
+        addHeader("Set-Cookie", cookie + "=" + value + ";");
+    }
+
+    public void deleteCookie(String cookie) {
+        List<String> list = header.get("Set-Cookie").stream().filter(str -> !str.toLowerCase().startsWith(cookie.toLowerCase())).toList();
+
+        header.remove("Set-Cookie");
+        header.put("Set-Cookie", list);
+    }
+
+    public boolean hasCookie(String cookie) {
+        return header.get("Set-Cookie") != null && header.get("Set-Cookie").stream().anyMatch(str -> str.toLowerCase().startsWith(cookie.toLowerCase()));
     }
 
     /**
