@@ -69,6 +69,9 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
                         return;
                     }
 
+                    request.setFinished(false);
+
+                    //TODO: for all processors, call processor to handle data, until there is a writer that can write the current type
                     owner.handleOutput(response, request);
                     response = request.getResponse();
 

@@ -82,12 +82,12 @@ public class RequestResponse {
     }
 
     public RequestResponse withHeader(String key, String value) {
-        setHeader(key, value);
+        addHeader(key, value);
         return this;
     }
 
     public RequestResponse withHeader(String key, Object value) {
-        setHeader(key, value.toString());
+        addHeader(key, value.toString());
         return this;
     }
 
