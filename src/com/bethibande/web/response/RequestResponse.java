@@ -1,9 +1,13 @@
 package com.bethibande.web.response;
 
+import com.sun.net.httpserver.Headers;
+
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class RequestResponse {
 
@@ -13,7 +17,7 @@ public class RequestResponse {
 
     private int statusCode = 200;
 
-    private HashMap<String, String> header = new HashMap<>();
+    private Headers header = new Headers();
 
     private Charset charset = StandardCharsets.UTF_8;
 
@@ -56,7 +60,7 @@ public class RequestResponse {
         return this;
     }
 
-    public RequestResponse withHeader(HashMap<String, String> header) {
+    public RequestResponse withHeader(Headers header) {
         setHeader(header);
         return this;
     }
@@ -80,7 +84,11 @@ public class RequestResponse {
 
     public void setHeader(String key, String value) {
         header.remove(key);
-        header.put(key, value);
+        header.put(key, List.of(value));
+    }
+
+    public void addHeader(String key, String value) {
+        header.add(key, value);
     }
 
     public void setLocation(String redirect) {
@@ -99,7 +107,7 @@ public class RequestResponse {
         this.statusCode = statusCode;
     }
 
-    public void setHeader(HashMap<String, String> header) {
+    public void setHeader(Headers header) {
         this.header = header;
     }
 
@@ -115,23 +123,26 @@ public class RequestResponse {
         return charset;
     }
 
-    public HashMap<String, String> getHeader() {
+    public Headers getHeader() {
         return header;
     }
 
     public String getContentType() {
-        return header.get("Content-Type");
+        List<String> values = header.get("Content-Type");
+        if(values == null || values.isEmpty()) return null;
+        return values.get(0);
     }
 
     public String getLocation() {
-        return header.get("Location");
+        List<String> values = header.get("Location");
+        if(values == null || values.isEmpty()) return null;
+        return values.get(0);
     }
 
     public long getContentLength() {
-        String str = header.get("Content-Length");
-        if(str == null) return 0;
-
-        return Long.parseLong(str);
+        List<String> values = header.get("Content-Length");
+        if(values == null || values.isEmpty()) return 0;
+        return Long.parseLong(values.get(0));
     }
 
     public Object getContentData() {

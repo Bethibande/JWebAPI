@@ -46,9 +46,7 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
                     timings.keyframe();
 
                     if(response.getContentData() == null) {
-                        for(String key : response.getHeader().keySet()) {
-                            exchange.getResponseHeaders().add(key, response.getHeader().get(key));
-                        }
+                        exchange.getResponseHeaders().putAll(response.getHeader());
 
                         exchange.sendResponseHeaders(response.getStatusCode(), 0);
                         exchange.close();
@@ -60,9 +58,7 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
 
                     timings.keyframe();
 
-                    for(String key : response.getHeader().keySet()) {
-                        exchange.getResponseHeaders().add(key, response.getHeader().get(key));
-                    }
+                    exchange.getResponseHeaders().putAll(response.getHeader());
 
                     exchange.sendResponseHeaders(response.getStatusCode(), response.getContentLength());
 
