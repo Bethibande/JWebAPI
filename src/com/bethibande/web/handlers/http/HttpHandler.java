@@ -1,8 +1,8 @@
 package com.bethibande.web.handlers.http;
 
 import com.bethibande.web.JWebServer;
-import com.bethibande.web.LocalServerContext;
-import com.bethibande.web.ServerContext;
+import com.bethibande.web.context.LocalServerContext;
+import com.bethibande.web.context.ServerContext;
 import com.bethibande.web.WebRequest;
 import com.bethibande.web.annotations.URI;
 import com.bethibande.web.handlers.MethodHandler;
@@ -40,7 +40,7 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
             Session session = owner.getSession(exchange.getRemoteAddress().getAddress());
             if(session == null) session = owner.generateSession(exchange.getRemoteAddress().getAddress());
 
-            LocalServerContext.setContext(new ServerContext(
+            LocalServerContext.setContext(owner.getContextFactory().createContext(
                     owner,
                     session,
                     exchange,
@@ -77,7 +77,6 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
 
                     timings.keyframe();
 
-                    response.withCookie("WebSessionId", session.getSessionId().toString());
                     exchange.getResponseHeaders().putAll(response.getHeader());
 
                     exchange.sendResponseHeaders(response.getStatusCode(), response.getContentLength());

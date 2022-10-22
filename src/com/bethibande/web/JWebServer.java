@@ -4,6 +4,8 @@ import com.bethibande.web.annotations.URI;
 import com.bethibande.web.cache.Cache;
 import com.bethibande.web.cache.CacheLifetimeType;
 import com.bethibande.web.cache.CachedRequest;
+import com.bethibande.web.context.ContextFactory;
+import com.bethibande.web.context.ServerContext;
 import com.bethibande.web.handlers.InstanceMethodHandler;
 import com.bethibande.web.handlers.MethodHandler;
 import com.bethibande.web.handlers.StaticMethodHandler;
@@ -13,10 +15,7 @@ import com.bethibande.web.handlers.out.OutputHandler;
 import com.bethibande.web.handlers.out.RequestResponseOutputHandler;
 import com.bethibande.web.io.ByteArrayWriter;
 import com.bethibande.web.io.OutputWriter;
-import com.bethibande.web.processors.ParameterProcessor;
-import com.bethibande.web.processors.PathAnnotationProcessor;
-import com.bethibande.web.processors.ServerContextParameterProcessor;
-import com.bethibande.web.processors.SessionParameterProcessor;
+import com.bethibande.web.processors.*;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
 import com.bethibande.web.util.ReflectUtils;
@@ -51,6 +50,8 @@ public class JWebServer {
     private HashMap<Class<?>, Class<? extends OutputHandler<?>>> outputHandlers = new HashMap<>();
     private HashMap<Class<?>, Class<? extends OutputWriter>> writers = new HashMap<>();
 
+    private ContextFactory contextFactory;
+
     public JWebServer() {
         initValues();
     }
@@ -69,11 +70,28 @@ public class JWebServer {
         registerProcessor(new PathAnnotationProcessor());
         registerProcessor(new SessionParameterProcessor());
         registerProcessor(new ServerContextParameterProcessor());
+        registerProcessor(new HeaderValueAnnotationProcessor());
+        registerProcessor(new RemoteAddressAnnotationProcessor());
 
         registerOutputHandler(Object.class, ObjectOutputHandler.class);
         registerOutputHandler(RequestResponse.class, RequestResponseOutputHandler.class);
 
         registerWriter(byte[].class, ByteArrayWriter.class);
+
+        setContextFactory(ServerContext::new);
+    }
+
+    public ContextFactory getContextFactory() {
+        return contextFactory;
+    }
+
+    public JWebServer withContextFactory(ContextFactory factory) {
+        setContextFactory(factory);
+        return this;
+    }
+
+    public void setContextFactory(ContextFactory factory) {
+        this.contextFactory = factory;
     }
 
     public void updateCache() {

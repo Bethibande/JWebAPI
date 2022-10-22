@@ -1,7 +1,7 @@
 package com.bethibande.web.processors;
 
-import com.bethibande.web.LocalServerContext;
-import com.bethibande.web.ServerContext;
+import com.bethibande.web.context.LocalServerContext;
+import com.bethibande.web.context.ServerContext;
 import com.bethibande.web.WebRequest;
 
 import java.lang.reflect.Method;

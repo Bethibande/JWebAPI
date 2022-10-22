@@ -6,6 +6,10 @@ public class MetaData {
 
     private HashMap<Object, Object> metadata = new HashMap<>();
 
+    public boolean hasMeta(Object key) {
+        return metadata.containsKey(key);
+    }
+
     public void remove(Object key) {
         metadata.remove(key);
     }

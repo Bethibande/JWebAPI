@@ -1,4 +1,4 @@
-package com.bethibande.web;
+package com.bethibande.web.context;
 
 import com.bethibande.web.sessions.Session;
 
