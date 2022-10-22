@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-// TODO: add supplier and delete hook to cache
+// TODO: post method invocation hooks
 // TODO: config for caches, including user request cache -> maxLifetime, maxItems, supplier, deleteHook
 public class JWebServer {
 
@@ -153,12 +153,17 @@ public class JWebServer {
         return ReflectUtils.createInstance(writerClass);
     }
 
+    public HashMap<Class<?>, Class<? extends OutputWriter>> getWriters() {
+        return writers;
+    }
+
     public JWebServer withWriter(Class<?> type, Class<? extends OutputWriter> writer) {
         registerWriter(type, writer);
         return this;
     }
 
     public void registerWriter(Class<?> type, Class<? extends OutputWriter> writer) {
+        writers.remove(type);
         writers.put(type, writer);
     }
 

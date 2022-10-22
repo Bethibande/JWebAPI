@@ -2,14 +2,15 @@ package com.bethibande.web.handlers.http;
 
 import com.bethibande.web.JWebServer;
 import com.bethibande.web.context.LocalServerContext;
-import com.bethibande.web.context.ServerContext;
 import com.bethibande.web.WebRequest;
 import com.bethibande.web.annotations.URI;
 import com.bethibande.web.handlers.MethodHandler;
+import com.bethibande.web.handlers.out.OutputHandler;
 import com.bethibande.web.io.OutputWriter;
 import com.bethibande.web.performance.TimingGenerator;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
+import com.bethibande.web.util.ReflectUtils;
 import com.sun.net.httpserver.HttpExchange;
 
 public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
@@ -58,21 +59,14 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
 
                     timings.keyframe();
 
-                    // TODO: somehow get rid of this if block
-                    if(response.getContentData() == null) {
-                        exchange.getResponseHeaders().putAll(response.getHeader());
+                    while(request.getResponse().getContentData() != null && owner.getWriters().get(request.getResponse().getContentData().getClass()) == null) {
+                        Class<? extends OutputHandler<?>> outputHandler = owner.getOutputHandler(request.getResponse().getContentData().getClass());
+                        if(outputHandler == null) outputHandler = owner.getOutputHandler(Object.class);
 
-                        exchange.sendResponseHeaders(response.getStatusCode(), 0);
-                        exchange.close();
-
-                        LocalServerContext.clearContext();
-                        return;
+                        OutputHandler<Object> out = (OutputHandler<Object>) ReflectUtils.createInstance(outputHandler);
+                        out.update(request.getResponse().getContentData(), request);
                     }
 
-                    request.setFinished(false);
-
-                    //TODO: for all processors, call processor to handle data, until there is a writer that can write the current type
-                    owner.handleOutput(response, request);
                     response = request.getResponse();
 
                     timings.keyframe();
