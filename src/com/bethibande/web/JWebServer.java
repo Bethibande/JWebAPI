@@ -34,6 +34,11 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+// TODO: URI annotation add content-type?
+// TODO: implement RequestMethod URI annotation parameter
+// TODO: update RequestMethod enum
+// TODO: remove HttpHandler timing debug message
+// TODO: fireBeforeInvocationHandlers and fireAfterInvocationHandlers methods?
 // TODO: abstract MethodInvocationHandler and abstract AnnotationInvocationHandler
 // TODO: cache factory and serverCacheFactory with CacheType(SESSION_CACHE, GLOBAL_REQUEST_CACHE, LOCAL_REQUEST_CACHE) enum
 // TODO: post method invocation hooks
