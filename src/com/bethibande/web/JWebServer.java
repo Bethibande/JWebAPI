@@ -16,6 +16,7 @@ import com.bethibande.web.handlers.out.RequestResponseOutputHandler;
 import com.bethibande.web.io.ByteArrayWriter;
 import com.bethibande.web.io.OutputWriter;
 import com.bethibande.web.processors.*;
+import com.bethibande.web.processors.impl.*;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
 import com.bethibande.web.util.ReflectUtils;
@@ -33,6 +34,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+// TODO: abstract MethodInvocationHandler and abstract AnnotationInvocationHandler
+// TODO: cache factory and serverCacheFactory with CacheType(SESSION_CACHE, GLOBAL_REQUEST_CACHE, LOCAL_REQUEST_CACHE) enum
 // TODO: post method invocation hooks
 // TODO: config for caches, including user request cache -> maxLifetime, maxItems, supplier, deleteHook
 public class JWebServer {
@@ -40,6 +43,11 @@ public class JWebServer {
     private InetSocketAddress bindAddress;
 
     private HttpServer server;
+
+    /**
+     * @see #isDebug()
+     */
+    private boolean debug = false;
 
     private Cache<UUID, Session> sessionCache;
     private Cache<String, CachedRequest> globalRequestCache;
@@ -49,6 +57,7 @@ public class JWebServer {
     private HashMap<URI, MethodHandler> methods = new HashMap<>();
     private HashMap<Class<?>, Class<? extends OutputHandler<?>>> outputHandlers = new HashMap<>();
     private HashMap<Class<?>, Class<? extends OutputWriter>> writers = new HashMap<>();
+    private List<MethodInvocationHandler> methodInvocationHandlers = new ArrayList<>();
 
     private ContextFactory contextFactory;
 
@@ -67,6 +76,8 @@ public class JWebServer {
                 .withLifetimeType(CacheLifetimeType.ON_CREATION)
                 .withMaxLifetime(60000L);
 
+        registerMethodInvocationHandler(new CachedRequestHandler());
+
         registerProcessor(new PathAnnotationProcessor());
         registerProcessor(new SessionParameterProcessor());
         registerProcessor(new ServerContextParameterProcessor());
@@ -79,6 +90,41 @@ public class JWebServer {
         registerWriter(byte[].class, ByteArrayWriter.class);
 
         setContextFactory(ServerContext::new);
+    }
+
+    /**
+     * @see #isDebug()
+     */
+    public JWebServer withDebug(boolean debug) {
+        setDebug(debug);
+        return this;
+    }
+
+    /**
+     * @see #isDebug()
+     */
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
+
+    /**
+     * If false, in case of an exception the stacktrace will be discarded and not be printed
+     */
+    public boolean isDebug() {
+        return debug;
+    }
+
+    public JWebServer withMethodInvocationHandler(MethodInvocationHandler handler) {
+        registerMethodInvocationHandler(handler);
+        return this;
+    }
+
+    public void registerMethodInvocationHandler(MethodInvocationHandler handler) {
+        methodInvocationHandlers.add(handler);
+    }
+
+    public List<MethodInvocationHandler> getMethodInvocationHandlers() {
+        return methodInvocationHandlers;
     }
 
     public ContextFactory getContextFactory() {

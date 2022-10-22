@@ -7,13 +7,14 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface CachedRequest {
+public @interface CacheRequest {
 
     /**
      * Time the request will be cached for, the cached response will be discarded after this amount of time.
+     * Default value is 0, this will cache the request for the configured max item lifetime of the request cache
      * @return time in ms
      */
-    long cacheTime();
+    long cacheTime() default 0;
 
     /**
      * If true, cached values will be used for everyone, no matter which device sends a request with the same uri, it will receive the same, cached response.<br>

@@ -1,6 +1,6 @@
 package com.bethibande.web.examples;
 
-import com.bethibande.web.annotations.CachedRequest;
+import com.bethibande.web.annotations.CacheRequest;
 import com.bethibande.web.annotations.Path;
 import com.bethibande.web.annotations.URI;
 import com.bethibande.web.response.RequestResponse;
@@ -8,6 +8,7 @@ import com.bethibande.web.sessions.Session;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class TestHandler {
 
@@ -21,6 +22,18 @@ public class TestHandler {
         return Message.MessageType.HELLO_WORLD.toMessage();
     }
 
+    @URI("/cache")
+    @CacheRequest(cacheTime = 10000L, global = true)
+    public Object cacheTest() {
+        return new Message(99, String.valueOf(ThreadLocalRandom.current().nextInt(Integer.MAX_VALUE)));
+    }
+
+    @URI("/localCache")
+    @CacheRequest(cacheTime = 10000L)
+    public Object localCacheTest() {
+        return new Message(99, String.valueOf(ThreadLocalRandom.current().nextInt(Integer.MAX_VALUE)));
+    }
+
     @URI("/test2")
     public Object test2(Session session) {
         return new Message(99, String.format(
@@ -30,7 +43,6 @@ public class TestHandler {
     }
 
     @URI(value = "/test/[a-zA-Z0-9\\s]{3,16}",type = URI.URIType.REGEX)
-    @CachedRequest(cacheTime = 60000L, global = true)
     public Object test(
             @Path String path,
             Session session

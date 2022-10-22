@@ -34,6 +34,7 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) {
+        long start = System.currentTimeMillis();
         try {
             timings.start();
             final WebRequest request = new WebRequest(owner, exchange);
@@ -56,6 +57,7 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
 
                     request.setMethod(handler.getMethod());
                     RequestResponse response = handler.invoke(request);
+                    request.setResponse(response);
 
                     timings.keyframe();
 
@@ -72,6 +74,7 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
                     timings.keyframe();
 
                     exchange.getResponseHeaders().putAll(response.getHeader());
+                    exchange.getResponseHeaders().set("Connection", "close");
 
                     exchange.sendResponseHeaders(response.getStatusCode(), response.getContentLength());
 
@@ -93,9 +96,11 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
                 }
             }
         } catch(Throwable th) {
-            th.printStackTrace();
+            if(owner.isDebug()) th.printStackTrace();
         }
 
         LocalServerContext.clearContext();
+        long end = System.currentTimeMillis();
+        System.out.println((end-start) + " ms");
     }
 }

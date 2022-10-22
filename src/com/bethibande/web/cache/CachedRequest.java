@@ -1,12 +1,34 @@
 package com.bethibande.web.cache;
 
-import java.util.UUID;
+import com.bethibande.web.response.RequestResponse;
 
 public class CachedRequest {
 
-    private String uri;
-    private UUID requester;
-    private Object response;
-    private Long creationDate;
+    private final String uri;
+    private final RequestResponse response;
+    private final Long creationDate;
 
+    public CachedRequest(String uri, RequestResponse response) {
+        this.uri = uri;
+        this.response = response;
+        this.creationDate = System.currentTimeMillis();
+    }
+
+    public CachedRequest(String uri, RequestResponse response, Long creationDate) {
+        this.uri = uri;
+        this.response = response;
+        this.creationDate = creationDate;
+    }
+
+    public String getUri() {
+        return uri;
+    }
+
+    public RequestResponse getResponse() {
+        return response;
+    }
+
+    public Long getCreationDate() {
+        return creationDate;
+    }
 }

@@ -35,6 +35,7 @@ public abstract class MethodHandler {
             if(request.isFinished()) break;
         }
 
+        request.setFinished(false);
     }
 
     public abstract RequestResponse invoke(WebRequest request);

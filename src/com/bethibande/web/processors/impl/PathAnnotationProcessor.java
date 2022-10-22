@@ -1,7 +1,8 @@
-package com.bethibande.web.processors;
+package com.bethibande.web.processors.impl;
 
 import com.bethibande.web.WebRequest;
 import com.bethibande.web.annotations.Path;
+import com.bethibande.web.processors.AnnotationProcessor;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
