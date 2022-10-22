@@ -37,7 +37,7 @@ dependencies {
 ```
 
 ## Dependencies
-- Google Gson
+- [Google Gson](https://mvnrepository.com/artifact/com.google.code.gson/gson)
 
 ## Example
 ~~Full example [here](https://github.com/Bethibande/JWebAPI/tree/master/examples/src/com/bethibande/web/examples)~~
