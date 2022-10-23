@@ -48,6 +48,7 @@ import java.util.concurrent.TimeUnit;
 // TODO: abstract MethodInvocationHandler and abstract AnnotationInvocationHandler
 // TODO: performance improvements?
 // TODO: @Secured method annotation for example
+// TODO: destructor
 public class JWebServer {
 
     private InetSocketAddress bindAddress;
