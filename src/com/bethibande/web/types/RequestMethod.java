@@ -4,7 +4,18 @@ public enum RequestMethod {
 
     POST,
     GET,
-    OPTION,
+    PUT,
+    PATCH,
+    COPY,
+    HEAD,
+    LINK,
+    UNLINK,
+    PURGE,
+    LOCK,
+    UNLOCK,
+    PROPFIND,
+    VIEW,
+    OPTIONS,
     DELETE;
 
 }

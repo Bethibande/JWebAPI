@@ -16,9 +16,7 @@ public class InstanceMethodHandler extends MethodHandler {
     public InstanceMethodHandler(Method method) {
         super(method);
 
-        this.instance = ReflectUtils.createInstance(
-                method.getDeclaringClass()
-        );
+        this.instance = ReflectUtils.createInstance(method.getDeclaringClass());
     }
 
     @Override
@@ -37,15 +35,11 @@ public class InstanceMethodHandler extends MethodHandler {
         try {
             Object value = getMethod().invoke(instance, request.getMethodInvocationParameters());
             if(value != null) request.getResponse().setContentData(value);
-        } catch (IllegalAccessException | InvocationTargetException e) {
+        } catch(IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
 
-        request.setFinished(false);
-
         for(MethodInvocationHandler handler : server.getMethodInvocationHandlers()) {
-            if(request.isFinished()) break;
-
             handler.afterInvocation(getMethod(), request, server);
         }
 

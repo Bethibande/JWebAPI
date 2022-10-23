@@ -43,11 +43,8 @@ import java.util.concurrent.TimeUnit;
 // TODO: stream parameters
 // TODO: write more documentation
 // TODO: URI annotation add content-type?
-// TODO: update RequestMethod enum
 // TODO: remove HttpHandler timing debug message
-// TODO: fireBeforeInvocationHandlers and fireAfterInvocationHandlers methods?
 // TODO: abstract MethodInvocationHandler and abstract AnnotationInvocationHandler
-// TODO: performance improvements?
 public class JWebServer {
 
     private InetSocketAddress bindAddress;

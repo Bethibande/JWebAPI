@@ -31,8 +31,6 @@ public abstract class MethodHandler {
             for(ParameterProcessor processor : server.getProcessors()) {
                 processor.process(request, i, method, parameter);
             }
-
-            if(request.isFinished()) break;
         }
 
         request.setFinished(false);

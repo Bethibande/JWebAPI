@@ -34,11 +34,7 @@ public class StaticMethodHandler extends MethodHandler {
             e.printStackTrace();
         }
 
-        request.setFinished(false);
-
         for(MethodInvocationHandler handler : server.getMethodInvocationHandlers()) {
-            if(request.isFinished()) break;
-
             handler.afterInvocation(getMethod(), request, server);
         }
 

@@ -47,10 +47,14 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
                 if(matches(uri, request)) {
                     MethodHandler handler = owner.getMethods().get(uri);
 
+                    //System.out.println((System.currentTimeMillis() - start) + " ms");
+
                     request.setMethod(handler.getMethod());
                     RequestResponse response = handler.invoke(request);
                     request.setResponse(response);
+                    //System.out.println((System.currentTimeMillis() - start) + " ms");
 
+                    // TODO: !! this while block is slow, refactor this, store outputhandlers as object instances and not classes !!
                     while(request.getResponse().getContentData() != null && owner.getWriters().get(request.getResponse().getContentData().getClass()) == null) {
                         Class<? extends OutputHandler<?>> outputHandler = owner.getOutputHandler(request.getResponse().getContentData().getClass());
                         if(outputHandler == null) outputHandler = owner.getOutputHandler(Object.class);
@@ -60,6 +64,7 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
                     }
 
                     response = request.getResponse();
+                    //System.out.println((System.currentTimeMillis() - start) + " ms");
 
                     exchange.getResponseHeaders().putAll(response.getHeader());
                     exchange.getResponseHeaders().set("Connection", "close");
@@ -72,6 +77,7 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
                         writer.write(request, response);
                     }
 
+                    //System.out.println((System.currentTimeMillis() - start) + " ms");
                     exchange.close();
                     break;
                 }
