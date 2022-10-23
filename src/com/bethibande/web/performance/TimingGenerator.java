@@ -62,7 +62,7 @@ public class TimingGenerator {
     }
 
     public void printDeviation() {
-        List<Long> deviation = calculateDeviation();
+        List<Long> deviation = calculateAverage();
 
         for(int i = 0; i < deviation.size(); i++) {
             Long value = deviation.get(i);

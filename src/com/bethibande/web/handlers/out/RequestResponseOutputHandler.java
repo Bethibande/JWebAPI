@@ -1,6 +1,6 @@
 package com.bethibande.web.handlers.out;
 
-import com.bethibande.web.WebRequest;
+import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.response.RequestResponse;
 
 public class RequestResponseOutputHandler implements OutputHandler<RequestResponse> {

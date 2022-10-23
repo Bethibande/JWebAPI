@@ -1,5 +1,6 @@
-package com.bethibande.web;
+package com.bethibande.web.types;
 
+import com.bethibande.web.JWebServer;
 import com.bethibande.web.response.RequestResponse;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;

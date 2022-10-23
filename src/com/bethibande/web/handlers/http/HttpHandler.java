@@ -2,7 +2,7 @@ package com.bethibande.web.handlers.http;
 
 import com.bethibande.web.JWebServer;
 import com.bethibande.web.context.LocalServerContext;
-import com.bethibande.web.WebRequest;
+import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.annotations.URI;
 import com.bethibande.web.handlers.MethodHandler;
 import com.bethibande.web.handlers.out.OutputHandler;

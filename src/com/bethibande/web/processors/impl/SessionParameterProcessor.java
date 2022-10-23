@@ -1,7 +1,7 @@
 package com.bethibande.web.processors.impl;
 
 import com.bethibande.web.context.LocalServerContext;
-import com.bethibande.web.WebRequest;
+import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.processors.ParameterProcessor;
 import com.bethibande.web.sessions.Session;
 

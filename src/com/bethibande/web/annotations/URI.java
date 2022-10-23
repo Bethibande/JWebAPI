@@ -1,6 +1,6 @@
 package com.bethibande.web.annotations;
 
-import com.bethibande.web.RequestMethod;
+import com.bethibande.web.types.RequestMethod;
 
 import java.lang.annotation.*;
 

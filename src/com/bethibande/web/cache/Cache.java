@@ -12,6 +12,19 @@ public class Cache<K, V> {
     private int maxItems = Integer.MAX_VALUE;
     private CacheLifetimeType lifetimeType;
 
+    /**
+     * Load config values
+     * @param config the config to load
+     * @return the current cache instance
+     */
+    public Cache<K, V> apply(CacheConfig config) {
+        this.maxItems = config.getMaxItems();
+        this.maxLifetime = config.getMaxLifetime();
+        this.lifetimeType = config.getLifetimeType();
+
+        return this;
+    }
+
     public long getMaxLifetime() {
         return maxLifetime;
     }

@@ -1,7 +1,7 @@
 package com.bethibande.web.examples;
 
 import com.bethibande.web.JWebServer;
-import com.bethibande.web.WebRequest;
+import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.context.ServerContext;
 import com.bethibande.web.examples.permission.PermissionScope;
 import com.bethibande.web.examples.permission.Permissions;

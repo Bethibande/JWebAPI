@@ -1,6 +1,6 @@
 package com.bethibande.web.processors.impl;
 
-import com.bethibande.web.WebRequest;
+import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.annotations.HeaderValue;
 import com.bethibande.web.processors.AnnotationProcessor;
 

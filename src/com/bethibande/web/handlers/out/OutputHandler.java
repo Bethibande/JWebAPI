@@ -1,6 +1,6 @@
 package com.bethibande.web.handlers.out;
 
-import com.bethibande.web.WebRequest;
+import com.bethibande.web.types.WebRequest;
 
 /**
  * Used to handle the return values of requests

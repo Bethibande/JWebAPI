@@ -1,11 +1,8 @@
 package com.bethibande.web.handlers.out;
 
-import com.bethibande.web.WebRequest;
+import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.response.RequestResponse;
 import com.google.gson.Gson;
-
-import java.io.IOException;
-import java.io.OutputStream;
 
 public class ObjectOutputHandler implements OutputHandler<Object> {
 

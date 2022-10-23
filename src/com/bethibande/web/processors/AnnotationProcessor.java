@@ -1,6 +1,6 @@
 package com.bethibande.web.processors;
 
-import com.bethibande.web.WebRequest;
+import com.bethibande.web.types.WebRequest;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;

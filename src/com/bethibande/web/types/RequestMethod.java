@@ -1,4 +1,4 @@
-package com.bethibande.web;
+package com.bethibande.web.types;
 
 public enum RequestMethod {
 

@@ -2,6 +2,7 @@ package com.bethibande.web;
 
 import com.bethibande.web.annotations.URI;
 import com.bethibande.web.cache.Cache;
+import com.bethibande.web.cache.CacheConfig;
 import com.bethibande.web.cache.CacheLifetimeType;
 import com.bethibande.web.cache.CachedRequest;
 import com.bethibande.web.context.ContextFactory;
@@ -19,6 +20,11 @@ import com.bethibande.web.processors.*;
 import com.bethibande.web.processors.impl.*;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
+import com.bethibande.web.types.CacheType;
+import com.bethibande.web.types.ServerCacheConfig;
+import com.bethibande.web.types.ServerCacheSupplier;
+import com.bethibande.web.types.WebRequest;
+import com.bethibande.web.types.impl.DefaultCacheSupplierImpl;
 import com.bethibande.web.util.ReflectUtils;
 import com.sun.net.httpserver.HttpServer;
 
@@ -40,9 +46,8 @@ import java.util.concurrent.TimeUnit;
 // TODO: remove HttpHandler timing debug message
 // TODO: fireBeforeInvocationHandlers and fireAfterInvocationHandlers methods?
 // TODO: abstract MethodInvocationHandler and abstract AnnotationInvocationHandler
-// TODO: cache factory and serverCacheFactory with CacheType(SESSION_CACHE, GLOBAL_REQUEST_CACHE, LOCAL_REQUEST_CACHE) enum
-// TODO: post method invocation hooks
-// TODO: config for caches, including user request cache -> maxLifetime, maxItems, supplier, deleteHook
+// TODO: performance improvements?
+// TODO: @Secured method annotation for example
 public class JWebServer {
 
     private InetSocketAddress bindAddress;
@@ -54,6 +59,7 @@ public class JWebServer {
      */
     private boolean debug = false;
 
+    private ServerCacheConfig cacheConfig;
     private Cache<UUID, Session> sessionCache;
     private Cache<String, CachedRequest> globalRequestCache;
     private volatile long lastCacheUpdate = 0;
@@ -64,6 +70,7 @@ public class JWebServer {
     private HashMap<Class<?>, Class<? extends OutputWriter>> writers = new HashMap<>();
     private List<MethodInvocationHandler> methodInvocationHandlers = new ArrayList<>();
 
+    private ServerCacheSupplier cacheSupplier;
     private ContextFactory contextFactory;
 
     public JWebServer() {
@@ -73,13 +80,22 @@ public class JWebServer {
     private void initValues() {
         bindAddress = new InetSocketAddress("0.0.0.0", 80);
 
-        sessionCache = new Cache<UUID, Session>()
-                .withLifetimeType(CacheLifetimeType.ON_ACCESS)
-                .withMaxLifetime(TimeUnit.MILLISECONDS.convert(10, TimeUnit.MINUTES));
+        cacheConfig = new ServerCacheConfig(
+                new CacheConfig()
+                        .withLifetimeType(CacheLifetimeType.ON_ACCESS)
+                        .withMaxItems(100)
+                        .withMaxLifetime(TimeUnit.MINUTES.toMillis(10)),
+                new CacheConfig()
+                        .withLifetimeType(CacheLifetimeType.ON_CREATION)
+                        .withMaxLifetime(10000L)
+                        .withMaxItems(100),
+                new CacheConfig()
+                        .withLifetimeType(CacheLifetimeType.ON_CREATION)
+                        .withMaxLifetime(10000L)
+                        .withMaxItems(10)
+        );
 
-        globalRequestCache = new Cache<String, CachedRequest>()
-                .withLifetimeType(CacheLifetimeType.ON_CREATION)
-                .withMaxLifetime(60000L);
+        setCacheSupplier(new DefaultCacheSupplierImpl(Cache::new, Cache::new));
 
         registerMethodInvocationHandler(new CachedRequestHandler());
 
@@ -95,6 +111,32 @@ public class JWebServer {
         registerWriter(byte[].class, ByteArrayWriter.class);
 
         setContextFactory(ServerContext::new);
+    }
+
+    public ServerCacheConfig getCacheConfig() {
+        return cacheConfig;
+    }
+
+    public ServerCacheSupplier getCacheSupplier() {
+        return cacheSupplier;
+    }
+
+    public JWebServer withCacheSupplier(ServerCacheSupplier supplier) {
+        setCacheSupplier(supplier);
+        return this;
+    }
+
+    public void setCacheSupplier(ServerCacheSupplier supplier) {
+        this.cacheSupplier = supplier;
+    }
+
+    public JWebServer withCacheConfig(ServerCacheConfig config) {
+        setCacheConfig(config);
+        return this;
+    }
+
+    public void setCacheConfig(ServerCacheConfig config) {
+        this.cacheConfig = config;
     }
 
     /**
@@ -341,6 +383,17 @@ public class JWebServer {
             HttpServer server = HttpServer.create(bindAddress, 100);
             server.createContext("/", new HttpHandler(this));
             start(server);
+
+            this.sessionCache = cacheSupplier.getSessionCache(
+                    this,
+                    cacheConfig
+            );
+
+            this.globalRequestCache = cacheSupplier.getRequestCache(
+                    this,
+                    cacheConfig,
+                    CacheType.GLOBAL_REQUEST_CACHE
+            );
         } catch(IOException e) {
             e.printStackTrace();
         }

@@ -1,10 +1,10 @@
 package com.bethibande.web.processors.impl;
 
 import com.bethibande.web.JWebServer;
-import com.bethibande.web.WebRequest;
+import com.bethibande.web.types.CacheType;
+import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.annotations.CacheRequest;
 import com.bethibande.web.cache.Cache;
-import com.bethibande.web.cache.CacheLifetimeType;
 import com.bethibande.web.cache.CachedRequest;
 import com.bethibande.web.context.LocalServerContext;
 import com.bethibande.web.context.ServerContext;
@@ -65,9 +65,14 @@ public class CachedRequestHandler extends AnnotatedInvocationHandler<CacheReques
         ServerContext context = LocalServerContext.getContext();
         MetaData localMetadata = context.session().getMeta();
         if(!localMetadata.hasMeta("localSessionCache")) {
-            localMetadata.set("localSessionCache", new Cache<>()
-                    .withLifetimeType(CacheLifetimeType.ON_CREATION)
-                    .withMaxLifetime(60000L));
+            localMetadata.set("localSessionCache", server
+                    .getCacheSupplier()
+                    .getRequestCache(
+                            server,
+                            server.getCacheConfig(),
+                            CacheType.LOCAL_REQUEST_CACHE
+                    )
+            );
             localMetadata.set("lastLocalSessionCacheUpdate", 0L);
         }
 

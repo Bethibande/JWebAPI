@@ -2,7 +2,7 @@ package com.bethibande.web.handlers;
 
 import com.bethibande.web.JWebServer;
 import com.bethibande.web.processors.ParameterProcessor;
-import com.bethibande.web.WebRequest;
+import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.response.RequestResponse;
 
 import java.lang.reflect.Method;
