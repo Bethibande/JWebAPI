@@ -5,6 +5,7 @@ import com.bethibande.web.annotations.Path;
 import com.bethibande.web.annotations.URI;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
+import com.bethibande.web.types.RequestMethod;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -20,6 +21,11 @@ public class TestHandler {
     @URI("/")
     public Object helloWorld() {
         return Message.MessageType.HELLO_WORLD.toMessage();
+    }
+
+    @URI(value = "/postOnly", methods = RequestMethod.POST)
+    public Object postOnlyTest() {
+        return Message.MessageType.OK.toMessage();
     }
 
     @URI("/cache")

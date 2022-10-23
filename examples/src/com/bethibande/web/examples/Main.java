@@ -12,7 +12,8 @@ public class Main {
                 .withMethodInvocationHandler(new SecuredAnnotationProcessor())
                 .withHandler(TestHandler.class)
                 .withHandler(SecuredHandler.class)
-                .withContextFactory(SecuredContext::new);
+                .withContextFactory(SecuredContext::new)
+                .withDebug(true);
 
         server.start();
 

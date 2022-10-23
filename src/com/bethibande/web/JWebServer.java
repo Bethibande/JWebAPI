@@ -40,14 +40,14 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+// TODO: stream parameters
+// TODO: write more documentation
 // TODO: URI annotation add content-type?
-// TODO: implement RequestMethod URI annotation parameter
 // TODO: update RequestMethod enum
 // TODO: remove HttpHandler timing debug message
 // TODO: fireBeforeInvocationHandlers and fireAfterInvocationHandlers methods?
 // TODO: abstract MethodInvocationHandler and abstract AnnotationInvocationHandler
 // TODO: performance improvements?
-// TODO: @Secured method annotation for example
 public class JWebServer {
 
     private InetSocketAddress bindAddress;
@@ -97,6 +97,7 @@ public class JWebServer {
 
         setCacheSupplier(new DefaultCacheSupplierImpl(Cache::new, Cache::new));
 
+        registerMethodInvocationHandler(new URIAnnotationProcessor());
         registerMethodInvocationHandler(new CachedRequestHandler());
 
         registerProcessor(new PathAnnotationProcessor());
