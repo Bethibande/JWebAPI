@@ -29,28 +29,26 @@ public class PermissionScope {
         return this;
     }
 
-    public boolean canRead(int permission) {
+    public boolean can(int permission, byte access) {
         if(!permissions.containsKey(permission)) return false;
-        byte access = permissions.get(permission);
-        return (access & ACCESS_READ) == ACCESS_READ;
+        byte _access = permissions.get(permission);
+        return (_access & access) == access;
+    }
+
+    public boolean canRead(int permission) {
+        return can(permission, ACCESS_READ);
     }
 
     public boolean canWrite(int permission) {
-        if(!permissions.containsKey(permission)) return false;
-        byte access = permissions.get(permission);
-        return (access & ACCESS_WRITE) == ACCESS_WRITE;
+        return can(permission, ACCESS_WRITE);
     }
 
     public boolean canRead(Permissions permission) {
-        if(!permissions.containsKey(permission.getId())) return false;
-        byte access = permissions.get(permission.getId());
-        return (access & ACCESS_READ) == ACCESS_READ;
+        return can(permission.getId(), ACCESS_READ);
     }
 
     public boolean canWrite(Permissions permission) {
-        if(!permissions.containsKey(permission.getId())) return false;
-        byte access = permissions.get(permission.getId());
-        return (access & ACCESS_WRITE) == ACCESS_WRITE;
+        return can(permission.getId(), ACCESS_WRITE);
     }
 
 }
