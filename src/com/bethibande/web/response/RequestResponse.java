@@ -2,14 +2,47 @@ package com.bethibande.web.response;
 
 import com.sun.net.httpserver.Headers;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class RequestResponse {
+
+    public static RequestResponse redirect(String redirect) {
+        return new RequestResponse()
+                .withLocation(redirect)
+                .withStatusCode(301);
+    }
+
+    public static RequestResponse stream(InputStream stream) {
+        try {
+            return stream(stream, stream.available());
+        } catch(IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static RequestResponse stream(InputStream stream, long length) {
+        return new RequestResponse()
+                .withStatusCode(202)
+                .withContentLength(length)
+                .withContentData(new InputStreamWrapper(stream, length));
+    }
+
+    public static RequestResponse file(File file) {
+        try {
+            InputStream in = new FileInputStream(file);
+
+            return stream(in, file.length());
+        } catch(IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static RequestResponse build() {
         return new RequestResponse();

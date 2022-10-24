@@ -18,6 +18,11 @@ public class TestHandler {
         return Message.MessageType.NOT_FOUND.toMessage();
     }*/
 
+    @URI("/file")
+    public Object fileTest() {
+        return RequestResponse.stream(getClass().getResourceAsStream("/test.html"));
+    }
+
     @URI("/")
     public Object helloWorld() {
         return Message.MessageType.HELLO_WORLD.toMessage();

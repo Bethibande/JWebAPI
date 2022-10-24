@@ -16,8 +16,10 @@ import com.bethibande.web.handlers.out.OutputHandler;
 import com.bethibande.web.handlers.out.RequestResponseOutputHandler;
 import com.bethibande.web.io.ByteArrayWriter;
 import com.bethibande.web.io.OutputWriter;
+import com.bethibande.web.io.StreamWriter;
 import com.bethibande.web.processors.*;
 import com.bethibande.web.processors.impl.*;
+import com.bethibande.web.response.InputStreamWrapper;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
 import com.bethibande.web.types.CacheType;
@@ -40,10 +42,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-// TODO: stream parameters
 // TODO: write more documentation
 // TODO: URI annotation add content-type?
 // TODO: remove HttpHandler timing debug message
+// TODO: context metadata for stuff like bufferSize, charset
 public class JWebServer {
 
     private InetSocketAddress bindAddress;
@@ -101,11 +103,13 @@ public class JWebServer {
         registerProcessor(new ServerContextParameterProcessor());
         registerProcessor(new HeaderValueAnnotationProcessor());
         registerProcessor(new RemoteAddressAnnotationProcessor());
+        registerProcessor(new InputStreamParameterProcessor());
 
         registerOutputHandler(Object.class, ObjectOutputHandler.class);
         registerOutputHandler(RequestResponse.class, RequestResponseOutputHandler.class);
 
         registerWriter(byte[].class, ByteArrayWriter.class);
+        registerWriter(InputStreamWrapper.class, StreamWriter.class);
 
         setContextFactory(ServerContext::new);
     }
