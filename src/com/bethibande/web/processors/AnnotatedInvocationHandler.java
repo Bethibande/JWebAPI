@@ -14,8 +14,8 @@ public abstract class AnnotatedInvocationHandler<T extends Annotation> implement
         this.type = type;
     }
 
-    public abstract void beforeInvocation(Method method, T annotation, WebRequest request, JWebServer server);
-    public abstract void afterInvocation(Method method, T annotation, WebRequest request, JWebServer server);
+    public void beforeInvocation(Method method, T annotation, WebRequest request, JWebServer server) { }
+    public void afterInvocation(Method method, T annotation, WebRequest request, JWebServer server) { }
 
     @Override
     public void beforeInvocation(Method method, WebRequest request, JWebServer server) {

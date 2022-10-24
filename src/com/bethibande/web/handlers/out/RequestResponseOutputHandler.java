@@ -15,6 +15,5 @@ public class RequestResponseOutputHandler implements OutputHandler<RequestRespon
         request.setResponse(value);
 
         if(value.getContentData() != null && value.getContentData().getClass().equals(RequestResponse.class)) throw new RuntimeException("Not allowed.");
-        if(value.getContentData() != null) request.getServer().handleOutput(value, request);
     }
 }

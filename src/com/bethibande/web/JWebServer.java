@@ -44,7 +44,6 @@ import java.util.concurrent.TimeUnit;
 // TODO: write more documentation
 // TODO: URI annotation add content-type?
 // TODO: remove HttpHandler timing debug message
-// TODO: abstract MethodInvocationHandler and abstract AnnotationInvocationHandler
 public class JWebServer {
 
     private InetSocketAddress bindAddress;
@@ -235,16 +234,6 @@ public class JWebServer {
         sessionCache.put(session.getSessionId(), session);
 
         return session;
-    }
-
-    public void handleOutput(RequestResponse response, WebRequest request) {
-        Object content = response.getContentData();
-        Class<? extends OutputHandler<?>> outputHandler = this.getOutputHandler(content.getClass());
-        if(outputHandler == null) outputHandler = this.getOutputHandler(Object.class);
-        if(outputHandler == null) throw new InvalidParameterException("There is no output handler that can handle this kind of output: '" + content.getClass() + "'!");
-
-        OutputHandler<Object> out = (OutputHandler<Object>) ReflectUtils.createInstance(outputHandler);
-        out.update(content, request);
     }
 
     public OutputWriter getWriter(Class<?> type) {
