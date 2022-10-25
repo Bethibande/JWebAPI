@@ -1,6 +1,7 @@
 package com.bethibande.web.context;
 
 import com.bethibande.web.JWebServer;
+import com.bethibande.web.sessions.MetaData;
 import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.sessions.Session;
 import com.sun.net.httpserver.HttpExchange;
@@ -11,6 +12,8 @@ public class ServerContext {
     private final Session session;
     private final HttpExchange exchange;
     private final WebRequest request;
+
+    private final MetaData metaData;
 
     public ServerContext(JWebServer server, Session session, HttpExchange exchange, WebRequest request) {
         this.server = server;
@@ -35,4 +38,7 @@ public class ServerContext {
         return request;
     }
 
+    public MetaData metadata() {
+        return metaData;
+    }
 }

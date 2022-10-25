@@ -7,6 +7,7 @@ import com.sun.net.httpserver.HttpExchange;
 
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.util.HashMap;
 
 public class WebRequest {
 
@@ -23,6 +24,8 @@ public class WebRequest {
     private Method method;
     private Object[] methodInvocationParameters;
 
+    private QueryMap queryMap;
+
     public WebRequest(JWebServer server, HttpExchange exchange) {
         this.server = server;
         this.exchange = exchange;
@@ -30,6 +33,15 @@ public class WebRequest {
         this.response = new RequestResponse();
         this.uri = exchange.getRequestURI();
         this.requestHeaders = exchange.getRequestHeaders();
+    }
+
+    private void parseQuery() {
+        queryMap = new QueryMap(getUri().getQuery());
+    }
+
+    public QueryMap getQuery() {
+        if(queryMap == null) parseQuery();
+        return queryMap;
     }
 
     public JWebServer getServer() {

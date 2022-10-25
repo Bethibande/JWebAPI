@@ -45,7 +45,9 @@ import java.util.concurrent.TimeUnit;
 // TODO: write more documentation
 // TODO: URI annotation add content-type?
 // TODO: remove HttpHandler timing debug message
-// TODO: context metadata for stuff like bufferSize, charset
+// TODO: bufferSize and charset
+// TODO: QueryField annotation
+// TODO: Field annotation for json post data
 public class JWebServer {
 
     private InetSocketAddress bindAddress;
@@ -408,3 +410,4 @@ public class JWebServer {
     }
 
 }
+
