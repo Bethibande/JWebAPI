@@ -31,6 +31,7 @@ public class WebRequest {
         this.exchange = exchange;
 
         this.response = new RequestResponse();
+        this.response.setCharset(server.getCharset());
         this.uri = exchange.getRequestURI();
         this.requestHeaders = exchange.getRequestHeaders();
     }

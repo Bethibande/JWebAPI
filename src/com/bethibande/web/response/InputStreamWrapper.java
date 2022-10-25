@@ -38,7 +38,7 @@ public class InputStreamWrapper {
         try {
             OutputStream out = request.getExchange().getResponseBody();
 
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[request.getServer().getBufferSize()];
             long total = length;
             int read;
             while((read = stream.read(buffer)) > 0) {

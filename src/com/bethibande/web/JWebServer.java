@@ -25,7 +25,6 @@ import com.bethibande.web.sessions.Session;
 import com.bethibande.web.types.CacheType;
 import com.bethibande.web.types.ServerCacheConfig;
 import com.bethibande.web.types.ServerCacheSupplier;
-import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.types.impl.DefaultCacheSupplierImpl;
 import com.bethibande.web.util.ReflectUtils;
 import com.sun.net.httpserver.HttpServer;
@@ -35,7 +34,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.security.InvalidParameterException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,9 +44,6 @@ import java.util.concurrent.TimeUnit;
 
 // TODO: write more documentation
 // TODO: URI annotation add content-type?
-// TODO: remove HttpHandler timing debug message
-// TODO: bufferSize and charset
-// TODO: QueryField annotation
 // TODO: Field annotation for json post data
 public class JWebServer {
 
@@ -58,6 +55,15 @@ public class JWebServer {
      * @see #isDebug()
      */
     private boolean debug = false;
+
+    /**
+     * Buffer size used by writers
+     */
+    private int bufferSize = 1024;
+    /**
+     * Charset used by writers
+     */
+    private Charset charset = StandardCharsets.UTF_8;
 
     private ServerCacheConfig cacheConfig;
     private Cache<UUID, Session> sessionCache;
@@ -125,6 +131,32 @@ public class JWebServer {
         if(!isAlive()) return;
 
         stop();
+    }
+
+    public JWebServer withCharset(Charset charset) {
+        setCharset(charset);
+        return this;
+    }
+
+    public JWebServer withBufferSize(int bufferSize) {
+        setBufferSize(bufferSize);
+        return this;
+    }
+
+    public void setCharset(Charset charset) {
+        this.charset = charset;
+    }
+
+    public void setBufferSize(int bufferSize) {
+        this.bufferSize = bufferSize;
+    }
+
+    public int getBufferSize() {
+        return bufferSize;
+    }
+
+    public Charset getCharset() {
+        return charset;
     }
 
     public ServerCacheConfig getCacheConfig() {
