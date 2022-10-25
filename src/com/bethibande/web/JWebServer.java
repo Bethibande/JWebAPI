@@ -106,6 +106,7 @@ public class JWebServer {
         registerProcessor(new HeaderValueAnnotationProcessor());
         registerProcessor(new RemoteAddressAnnotationProcessor());
         registerProcessor(new InputStreamParameterProcessor());
+        registerProcessor(new QueryFieldAnnotationProcessor());
 
         registerOutputHandler(Object.class, ObjectOutputHandler.class);
         registerOutputHandler(RequestResponse.class, RequestResponseOutputHandler.class);

@@ -13,7 +13,7 @@ public class ServerContext {
     private final HttpExchange exchange;
     private final WebRequest request;
 
-    private final MetaData metaData;
+    private final MetaData metaData = new MetaData();
 
     public ServerContext(JWebServer server, Session session, HttpExchange exchange, WebRequest request) {
         this.server = server;

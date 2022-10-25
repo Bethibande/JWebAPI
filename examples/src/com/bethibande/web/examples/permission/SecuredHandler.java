@@ -1,6 +1,7 @@
 package com.bethibande.web.examples.permission;
 
 import com.bethibande.web.annotations.Path;
+import com.bethibande.web.annotations.QueryField;
 import com.bethibande.web.annotations.URI;
 import com.bethibande.web.examples.Message;
 import com.bethibande.web.examples.SecuredContext;
@@ -38,11 +39,16 @@ public class SecuredHandler {
 
     @URI("/grantPermissions")
     public Object grantPermissions(
-            SecuredContext context
+            SecuredContext context,
+            @QueryField("not") boolean not // set not query parameter to revoke permissions instead
     ) {
-        context.loadPermissions(new PermissionScope()
-                .withPermission(Permissions.USERNAME, (byte)(PermissionScope.ACCESS_READ | PermissionScope.ACCESS_WRITE))
-        );
+        if(not) {
+            context.loadPermissions();
+        } else {
+            context.loadPermissions(new PermissionScope()
+                    .withPermission(Permissions.USERNAME, (byte)(PermissionScope.ACCESS_READ | PermissionScope.ACCESS_WRITE))
+            );
+        }
 
         return new RequestResponse()
                 .withStatusCode(202)
