@@ -2,6 +2,7 @@ package com.bethibande.web.examples;
 
 import com.bethibande.web.annotations.CacheRequest;
 import com.bethibande.web.annotations.Path;
+import com.bethibande.web.annotations.PostData;
 import com.bethibande.web.annotations.URI;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
@@ -31,6 +32,14 @@ public class TestHandler {
     @URI(value = "/postOnly", methods = RequestMethod.POST)
     public Object postOnlyTest() {
         return Message.MessageType.OK.toMessage();
+    }
+
+    @URI(value = "/postMessage", methods = RequestMethod.POST)
+    public Object postMessage(
+            @PostData Message message
+    ) {
+
+        return new Message(99, message.getMessage());
     }
 
     @URI("/cache")

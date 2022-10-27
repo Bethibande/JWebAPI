@@ -44,7 +44,6 @@ import java.util.concurrent.TimeUnit;
 
 // TODO: write more documentation
 // TODO: URI annotation add content-type?
-// TODO: Field annotation for json post data
 public class JWebServer {
 
     private InetSocketAddress bindAddress;
@@ -113,6 +112,7 @@ public class JWebServer {
         registerProcessor(new RemoteAddressAnnotationProcessor());
         registerProcessor(new InputStreamParameterProcessor());
         registerProcessor(new QueryFieldAnnotationProcessor());
+        registerProcessor(new PostDataAnnotationProcessor());
 
         registerOutputHandler(Object.class, ObjectOutputHandler.class);
         registerOutputHandler(RequestResponse.class, RequestResponseOutputHandler.class);

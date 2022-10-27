@@ -1,4 +1,4 @@
-package com.bethibande.web.sessions;
+package com.bethibande.web.types;
 
 import java.util.HashMap;
 

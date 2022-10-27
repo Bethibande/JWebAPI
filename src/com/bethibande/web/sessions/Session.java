@@ -1,6 +1,7 @@
 package com.bethibande.web.sessions;
 
 import com.bethibande.web.JWebServer;
+import com.bethibande.web.types.MetaData;
 
 import java.net.InetAddress;
 import java.util.UUID;

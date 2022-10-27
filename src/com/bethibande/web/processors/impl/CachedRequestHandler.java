@@ -9,7 +9,7 @@ import com.bethibande.web.cache.CachedRequest;
 import com.bethibande.web.context.LocalServerContext;
 import com.bethibande.web.context.ServerContext;
 import com.bethibande.web.processors.AnnotatedInvocationHandler;
-import com.bethibande.web.sessions.MetaData;
+import com.bethibande.web.types.MetaData;
 
 import java.lang.reflect.Method;
 

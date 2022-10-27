@@ -78,6 +78,12 @@ public class WebRequest {
         return requestHeaders;
     }
 
+    public long getContentLength() {
+        String value = getRequestHeaders().getFirst("Content-Length");
+        if(value == null) return 0L;
+        return Long.parseLong(value);
+    }
+
     public HttpExchange getExchange() {
         return exchange;
     }
