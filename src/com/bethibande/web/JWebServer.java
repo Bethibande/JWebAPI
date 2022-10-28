@@ -113,6 +113,7 @@ public class JWebServer {
         registerProcessor(new InputStreamParameterProcessor());
         registerProcessor(new QueryFieldAnnotationProcessor());
         registerProcessor(new PostDataAnnotationProcessor());
+        registerProcessor(new JsonFieldAnnotationProcessor());
 
         registerOutputHandler(Object.class, ObjectOutputHandler.class);
         registerOutputHandler(RequestResponse.class, RequestResponseOutputHandler.class);

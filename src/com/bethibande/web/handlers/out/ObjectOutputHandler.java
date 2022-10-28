@@ -1,5 +1,7 @@
 package com.bethibande.web.handlers.out;
 
+import com.bethibande.web.context.LocalServerContext;
+import com.bethibande.web.context.ServerContext;
 import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.response.RequestResponse;
 import com.google.gson.Gson;
@@ -15,7 +17,10 @@ public class ObjectOutputHandler implements OutputHandler<Object> {
 
     @Override
     public void update(Object value, WebRequest request) {
-        byte[] data = new Gson().toJson(value).getBytes(request.getResponse().getCharset());
+        ServerContext context = LocalServerContext.getContext();
+        if(context == null) throw new RuntimeException("Cannot write object without context.");
+
+        byte[] data = new Gson().toJson(value).getBytes(context.metadata().getCharset());
 
         RequestResponse response = request.getResponse();
         if(response.getContentType() == null) response.setContentType(ObjectOutputHandler.CONTENT_TYPE);

@@ -1,6 +1,8 @@
 package com.bethibande.web.response;
 
 import com.bethibande.web.JWebServer;
+import com.bethibande.web.context.LocalServerContext;
+import com.bethibande.web.context.ServerContext;
 import com.bethibande.web.types.WebRequest;
 
 import java.io.IOException;
@@ -36,9 +38,12 @@ public class InputStreamWrapper {
 
     public void write(WebRequest request) {
         try {
+            ServerContext context = LocalServerContext.getContext();
+            if(context == null) throw new RuntimeException("Cannot write InputStreamWrapper without context.");
+
             OutputStream out = request.getExchange().getResponseBody();
 
-            byte[] buffer = new byte[request.getServer().getBufferSize()];
+            byte[] buffer = new byte[context.metadata().getBufferSize()];
             long total = length;
             int read;
             while((read = stream.read(buffer)) > 0) {

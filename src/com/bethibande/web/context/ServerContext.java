@@ -1,7 +1,6 @@
 package com.bethibande.web.context;
 
 import com.bethibande.web.JWebServer;
-import com.bethibande.web.types.MetaData;
 import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.sessions.Session;
 import com.sun.net.httpserver.HttpExchange;
@@ -13,13 +12,16 @@ public class ServerContext {
     private final HttpExchange exchange;
     private final WebRequest request;
 
-    private final MetaData metaData = new MetaData();
+    private final ContextMeta metaData = new ContextMeta();
 
     public ServerContext(JWebServer server, Session session, HttpExchange exchange, WebRequest request) {
         this.server = server;
         this.session = session;
         this.exchange = exchange;
         this.request = request;
+
+        this.metaData.setBufferSize(server.getBufferSize());
+        this.metaData.setCharset(server.getCharset());
     }
 
     public JWebServer server() {
@@ -38,7 +40,7 @@ public class ServerContext {
         return request;
     }
 
-    public MetaData metadata() {
+    public ContextMeta metadata() {
         return metaData;
     }
 }
