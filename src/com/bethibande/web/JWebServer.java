@@ -341,6 +341,24 @@ public class JWebServer {
         processors.add(processor);
     }
 
+    public JWebServer withMethod(Class<?> clazz, String methodName, Class<?>... methodSignature) {
+        registerMethod(clazz, methodName, methodSignature);
+        return this;
+    }
+
+    public JWebServer withMethod(Method method) {
+        registerMethod(method);
+        return this;
+    }
+
+    public void registerMethod(Class<?> clazz, String methodName, Class<?>... methodSignature) {
+        try {
+            registerMethod(clazz.getDeclaredMethod(methodName, methodSignature));
+        } catch(NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void registerMethod(Method method) {
         URI uri = method.getAnnotation(URI.class);
 
