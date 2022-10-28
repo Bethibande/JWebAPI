@@ -71,7 +71,7 @@ public class JWebServer {
 
     private List<ParameterProcessor> processors = new ArrayList<>();
     private HashMap<URI, MethodHandler> methods = new HashMap<>();
-    private HashMap<Class<?>, Class<? extends OutputHandler<?>>> outputHandlers = new HashMap<>();
+    private HashMap<Class<?>, OutputHandler<?>> outputHandlers = new HashMap<>();
     private HashMap<Class<?>, Class<? extends OutputWriter>> writers = new HashMap<>();
     private List<MethodInvocationHandler> methodInvocationHandlers = new ArrayList<>();
 
@@ -115,8 +115,8 @@ public class JWebServer {
         registerProcessor(new PostDataAnnotationProcessor());
         registerProcessor(new JsonFieldAnnotationProcessor());
 
-        registerOutputHandler(Object.class, ObjectOutputHandler.class);
-        registerOutputHandler(RequestResponse.class, RequestResponseOutputHandler.class);
+        registerOutputHandler(Object.class, new ObjectOutputHandler());
+        registerOutputHandler(RequestResponse.class, new RequestResponseOutputHandler());
 
         registerWriter(byte[].class, ByteArrayWriter.class);
         registerWriter(InputStreamWrapper.class, StreamWriter.class);
@@ -320,20 +320,20 @@ public class JWebServer {
         return this;
     }
 
-    public <T> JWebServer withOutputHandler(Class<T> type, Class<? extends OutputHandler<T>> handler) {
+    public <T> JWebServer withOutputHandler(Class<T> type, OutputHandler<T> handler) {
         registerOutputHandler(type, handler);
         return this;
     }
 
-    public <T> void registerOutputHandler(Class<T> type, Class<? extends OutputHandler<T>> handler) {
+    public <T> void registerOutputHandler(Class<T> type, OutputHandler<T> handler) {
         outputHandlers.put(type, handler);
     }
 
-    public <T> Class<? extends OutputHandler<T>> getOutputHandler(Class<T> type) {
-        return (Class<? extends OutputHandler<T>>) outputHandlers.get(type);
+    public <T> OutputHandler<T> getOutputHandler(Class<T> type) {
+        return (OutputHandler<T>) outputHandlers.get(type);
     }
 
-    public HashMap<Class<?>, Class<? extends OutputHandler<?>>> getOutputHandlers() {
+    public HashMap<Class<?>, OutputHandler<?>> getOutputHandlers() {
         return outputHandlers;
     }
 

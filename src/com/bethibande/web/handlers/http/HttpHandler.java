@@ -56,11 +56,10 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
 
                     // TODO: !! this while block is slow, refactor this, store outputhandlers as object instances and not classes !!
                     while(request.getResponse().getContentData() != null && owner.getWriters().get(request.getResponse().getContentData().getClass()) == null) {
-                        Class<? extends OutputHandler<?>> outputHandler = owner.getOutputHandler(request.getResponse().getContentData().getClass());
+                        OutputHandler<?> outputHandler = owner.getOutputHandler(request.getResponse().getContentData().getClass());
                         if(outputHandler == null) outputHandler = owner.getOutputHandler(Object.class);
 
-                        OutputHandler<Object> out = (OutputHandler<Object>) ReflectUtils.createInstance(outputHandler);
-                        out.update(request.getResponse().getContentData(), request);
+                        ((OutputHandler<Object>) outputHandler).update(request.getResponse().getContentData(), request);
                     }
 
                     response = request.getResponse();
