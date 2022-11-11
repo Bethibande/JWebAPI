@@ -9,7 +9,6 @@ import com.bethibande.web.handlers.out.OutputHandler;
 import com.bethibande.web.io.OutputWriter;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
-import com.bethibande.web.util.ReflectUtils;
 import com.sun.net.httpserver.HttpExchange;
 
 public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
@@ -20,10 +19,13 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
         this.owner = owner;
     }
 
-    public boolean matches(URI uri, WebRequest request) {
-        if(uri.type().equals(URI.URIType.STRICT)) return uri.value().equals(request.getUri().getPath());
-        if(uri.type().equals(URI.URIType.STRING)) return request.getUri().getPath().startsWith(uri.value());
-        if(uri.type().equals(URI.URIType.REGEX)) return request.getUri().getPath().matches(uri.value());
+    public boolean matches(URI uri, WebRequest request) { // TODO: refactor to remove duplicate code
+        URI.URIType type = uri.type();
+        String path = request.getUri().getPath();
+        String value = uri.value();
+        if(type.equals(URI.URIType.STRICT)) return path.equalsIgnoreCase(value);
+        if(type.equals(URI.URIType.STRING)) return path.startsWith(value);
+        if(type.equals(URI.URIType.REGEX)) return path.matches(value);
         return false;
     }
 
@@ -53,6 +55,8 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
                     RequestResponse response = handler.invoke(request);
                     request.setResponse(response);
                     //System.out.println((System.currentTimeMillis() - start) + " ms");
+
+                    request.getExchange().getResponseHeaders().set("Access-Control-Allow-Origin", "*");
 
                     // TODO: !! this while block is slow, refactor this, store outputhandlers as object instances and not classes !!
                     while(request.getResponse().getContentData() != null && owner.getWriters().get(request.getResponse().getContentData().getClass()) == null) {

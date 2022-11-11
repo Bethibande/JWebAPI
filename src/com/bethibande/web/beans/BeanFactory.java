@@ -4,6 +4,6 @@ import com.bethibande.web.context.ServerContext;
 
 public interface BeanFactory {
 
-    <T> T create(Class<T> type, ServerContext context);
+    <T extends Bean> T create(Class<T> type, ServerContext context);
 
 }

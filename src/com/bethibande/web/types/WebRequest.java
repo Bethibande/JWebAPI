@@ -103,4 +103,9 @@ public class WebRequest {
     public Object[] getMethodInvocationParameters() {
         return methodInvocationParameters;
     }
+
+    @Override
+    public WebRequest clone() {
+        return new WebRequest(server, exchange);
+    }
 }

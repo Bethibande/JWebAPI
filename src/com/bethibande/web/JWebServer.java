@@ -104,6 +104,7 @@ public class JWebServer {
 
         registerMethodInvocationHandler(new URIAnnotationProcessor());
         registerMethodInvocationHandler(new CachedRequestHandler());
+        registerMethodInvocationHandler(new BeanHandler());
 
         registerProcessor(new PathAnnotationProcessor());
         registerProcessor(new SessionParameterProcessor());
@@ -114,6 +115,7 @@ public class JWebServer {
         registerProcessor(new QueryFieldAnnotationProcessor());
         registerProcessor(new PostDataAnnotationProcessor());
         registerProcessor(new JsonFieldAnnotationProcessor());
+        registerProcessor(new BeanParameterProcessor());
 
         registerOutputHandler(Object.class, new ObjectOutputHandler());
         registerOutputHandler(RequestResponse.class, new RequestResponseOutputHandler());

@@ -9,7 +9,7 @@ import com.bethibande.web.util.IOUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
-import java.lang.reflect.Method;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Parameter;
 
 public class JsonFieldAnnotationProcessor extends AnnotationProcessor<JsonField> {
@@ -20,7 +20,7 @@ public class JsonFieldAnnotationProcessor extends AnnotationProcessor<JsonField>
 
 
     @Override
-    public Object getValue(WebRequest request, JsonField annotation, Method method, Parameter parameter) {
+    public Object getValue(WebRequest request, JsonField annotation, Executable executable, Parameter parameter) {
         ServerContext context = LocalServerContext.getContext();
         if(context == null) throw new RuntimeException("Cannot process @JsonField annotation without context.");
         if(!context.metadata().hasMeta("JsonData")) {

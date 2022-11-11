@@ -4,7 +4,7 @@ import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.annotations.Path;
 import com.bethibande.web.processors.AnnotationProcessor;
 
-import java.lang.reflect.Method;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Parameter;
 
 public class PathAnnotationProcessor extends AnnotationProcessor<Path> {
@@ -14,7 +14,7 @@ public class PathAnnotationProcessor extends AnnotationProcessor<Path> {
     }
 
     @Override
-    public Object getValue(WebRequest request, Path annotation, Method method, Parameter parameter) {
+    public Object getValue(WebRequest request, Path annotation, Executable executable, Parameter parameter) {
         return request.getUri().getPath();
     }
 }

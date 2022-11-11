@@ -1,6 +1,7 @@
 package com.bethibande.web.examples;
 
 import com.bethibande.web.annotations.*;
+import com.bethibande.web.examples.beans.TestBean;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
 import com.bethibande.web.types.RequestMethod;
@@ -15,6 +16,15 @@ public class TestHandler {
     public Message notFound() {
         return Message.MessageType.NOT_FOUND.toMessage();
     }*/
+
+    @URI("/count")
+    public Object count(TestBean bean) {
+        bean.increment();
+
+        return new RequestResponse()
+                .withStatusCode(202)
+                .withContentData(new Message(bean.getNumber(), bean.getPath()));
+    }
 
     @URI("/file")
     public Object fileTest() {

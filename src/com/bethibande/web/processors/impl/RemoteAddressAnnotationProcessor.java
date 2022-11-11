@@ -4,7 +4,7 @@ import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.annotations.RemoteAddress;
 import com.bethibande.web.processors.AnnotationProcessor;
 
-import java.lang.reflect.Method;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Parameter;
 
 public class RemoteAddressAnnotationProcessor extends AnnotationProcessor<RemoteAddress> {
@@ -14,7 +14,7 @@ public class RemoteAddressAnnotationProcessor extends AnnotationProcessor<Remote
     }
 
     @Override
-    public Object getValue(WebRequest request, RemoteAddress annotation, Method method, Parameter parameter) {
+    public Object getValue(WebRequest request, RemoteAddress annotation, Executable executable, Parameter parameter) {
         return request.getExchange().getRemoteAddress();
     }
 }

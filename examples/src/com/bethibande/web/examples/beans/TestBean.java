@@ -1,16 +1,25 @@
 package com.bethibande.web.examples.beans;
 
+import com.bethibande.web.annotations.Path;
 import com.bethibande.web.annotations.PostConstruct;
 import com.bethibande.web.annotations.PostDestroy;
-import com.bethibande.web.annotations.WebBean;
+import com.bethibande.web.beans.Bean;
 
-@WebBean
-public class TestBean {
+public class TestBean extends Bean {
 
     private int number;
+    private transient String path;
+
+    public TestBean(@Path String path) {
+        this.path = path;
+    }
 
     public int getNumber() {
         return number;
+    }
+
+    public String getPath() {
+        return path;
     }
 
     public void increment() {
@@ -19,7 +28,7 @@ public class TestBean {
 
     @PostConstruct
     public void onInit() {
-        number = 0;
+        number = 1;
     }
 
     @PostDestroy

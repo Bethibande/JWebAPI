@@ -8,7 +8,7 @@ import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.util.IOUtils;
 import com.google.gson.Gson;
 
-import java.lang.reflect.Method;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Parameter;
 
 public class PostDataAnnotationProcessor extends AnnotationProcessor<PostData> {
@@ -18,7 +18,7 @@ public class PostDataAnnotationProcessor extends AnnotationProcessor<PostData> {
     }
 
     @Override
-    public Object getValue(WebRequest request, PostData annotation, Method method, Parameter parameter) {
+    public Object getValue(WebRequest request, PostData annotation, Executable executable, Parameter parameter) {
         ServerContext context = LocalServerContext.getContext();
         if(context == null) throw new RuntimeException("Invoking annotation processor without a context?");
 

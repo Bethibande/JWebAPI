@@ -4,7 +4,7 @@ import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.annotations.HeaderValue;
 import com.bethibande.web.processors.AnnotationProcessor;
 
-import java.lang.reflect.Method;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Parameter;
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -18,7 +18,7 @@ public class HeaderValueAnnotationProcessor extends AnnotationProcessor<HeaderVa
     }
 
     @Override
-    public Object getValue(WebRequest request, HeaderValue annotation, Method method, Parameter parameter) {
+    public Object getValue(WebRequest request, HeaderValue annotation, Executable executable, Parameter parameter) {
         Class<?> type = parameter.getType();
 
         if(Collection.class.isAssignableFrom(type)) {
