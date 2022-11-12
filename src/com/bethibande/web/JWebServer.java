@@ -42,8 +42,11 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-// TODO: write more documentation
-// TODO: URI annotation add content-type?
+/**
+ * This class represents a Http or Https Server.<br>
+ * This class uses the java HttpServer or alternatively HttpsServer classes to create and run a http server. <br>
+ * Default bind address is 0.0.0.0 and port 80
+ */
 public class JWebServer {
 
     private InetSocketAddress bindAddress;
@@ -82,6 +85,9 @@ public class JWebServer {
         initValues();
     }
 
+    /**
+     * Internal method used to initialize default values, caches, processors, handlers, suppliers and more
+     */
     private void initValues() {
         bindAddress = new InetSocketAddress("0.0.0.0", 80);
 
@@ -127,7 +133,7 @@ public class JWebServer {
     }
 
     /**
-     * Destructor
+     * Destructor, stops the server using {@link #stop()}
      */
     @Override
     protected void finalize() throws Throwable {
@@ -136,54 +142,122 @@ public class JWebServer {
         stop();
     }
 
+    /**
+     * Sets the servers default charset
+     * @return the current JWebServer instance, used for chaining methods.
+     * @see #setCharset(Charset)
+     */
     public JWebServer withCharset(Charset charset) {
         setCharset(charset);
         return this;
     }
 
+    /**
+     * Sets the servers buffer size, used for writing and reading data
+     * @param bufferSize buffer size in bytes
+     * @return the current JWebServer instance, used for chaining methods.
+     * @see #setBufferSize(int) 
+     */
     public JWebServer withBufferSize(int bufferSize) {
         setBufferSize(bufferSize);
         return this;
     }
 
+    /**
+     * Sets the servers default charset
+     * @param charset default value is UTF-8
+     * @see #withCharset(Charset)
+     */
     public void setCharset(Charset charset) {
         this.charset = charset;
     }
 
+    /**
+     * Sets the servers buffer size, used for reading and writing data
+     * @param bufferSize buffer size in bytes, default value is 1024
+     * @see #withBufferSize(int)
+     */
     public void setBufferSize(int bufferSize) {
         this.bufferSize = bufferSize;
     }
 
+    /**
+     * Gets the servers buffer size
+     * @return buffer size in bytes
+     * @see #setBufferSize(int)
+     */
     public int getBufferSize() {
         return bufferSize;
     }
 
+    /**
+     * Gets the servers default charset
+     * @return default value is UTF-8
+     * @see #setCharset(Charset)
+     */
     public Charset getCharset() {
         return charset;
     }
 
+    /**
+     * Gets the config used to configure caches, default value <br>
+     * {@code cacheConfig = new ServerCacheConfig(
+     *                 new CacheConfig()
+     *                         .withLifetimeType(CacheLifetimeType.ON_ACCESS)
+     *                         .withMaxItems(100)
+     *                         .withMaxLifetime(TimeUnit.MINUTES.toMillis(10)),
+     *                 new CacheConfig()
+     *                         .withLifetimeType(CacheLifetimeType.ON_CREATION)
+     *                         .withMaxLifetime(10000L)
+     *                         .withMaxItems(100),
+     *                 new CacheConfig()
+     *                         .withLifetimeType(CacheLifetimeType.ON_CREATION)
+     *                         .withMaxLifetime(10000L)
+     *                         .withMaxItems(10)
+     *         );}
+     */
     public ServerCacheConfig getCacheConfig() {
         return cacheConfig;
     }
 
+    /**
+     * Get cache supplier
+     * @see #setCacheSupplier(ServerCacheSupplier)
+     */
     public ServerCacheSupplier getCacheSupplier() {
         return cacheSupplier;
     }
 
+    /**
+     * Set the cache supplier, used to create new cache instances
+     * @return the current JWebServer instance, used for chaining methods.
+     * @see #setCacheSupplier(ServerCacheSupplier)
+     */
     public JWebServer withCacheSupplier(ServerCacheSupplier supplier) {
         setCacheSupplier(supplier);
         return this;
     }
 
+    /**
+     * Set the cache supplier, used to create new cache instances
+     */
     public void setCacheSupplier(ServerCacheSupplier supplier) {
         this.cacheSupplier = supplier;
     }
 
+    /**
+     * Set the cache config, used to configure all caches used by the server.
+     * @return the current JWebServer instance, used for chaining methods.
+     * @see #setCacheConfig(ServerCacheConfig)
+     */
     public JWebServer withCacheConfig(ServerCacheConfig config) {
         setCacheConfig(config);
         return this;
     }
 
+    /**
+     * Set the cache config, used to configure all caches used by this server.
+     */
     public void setCacheConfig(ServerCacheConfig config) {
         this.cacheConfig = config;
     }
@@ -204,38 +278,66 @@ public class JWebServer {
     }
 
     /**
-     * If false, in case of an exception the stacktrace will be discarded and not be printed
+     * If false, in case of an exception the stacktrace will be discarded and not be printed.
      */
     public boolean isDebug() {
         return debug;
     }
 
+    /**
+     * Register an invocation handler, fired before and after invoking a method.
+     * @return the current JWebServer instance, used for chaining methods.
+     * @see #registerMethodInvocationHandler(MethodInvocationHandler)
+     */
     public JWebServer withMethodInvocationHandler(MethodInvocationHandler handler) {
         registerMethodInvocationHandler(handler);
         return this;
     }
 
+    /**
+     * Register an invocation handler, fired before and after invoking a method.
+     */
     public void registerMethodInvocationHandler(MethodInvocationHandler handler) {
         methodInvocationHandlers.add(handler);
     }
 
+    /**
+     * Get all registered method invocation handlers
+     * @see #registerMethodInvocationHandler(MethodInvocationHandler)
+     */
     public List<MethodInvocationHandler> getMethodInvocationHandlers() {
         return methodInvocationHandlers;
     }
 
+    /**
+     * @return Context factory used to create context instances
+     */
     public ContextFactory getContextFactory() {
         return contextFactory;
     }
 
+    /**
+     * Set the context factory
+     * @see #getContextFactory()
+     * @see #setContextFactory(ContextFactory)
+     */
     public JWebServer withContextFactory(ContextFactory factory) {
         setContextFactory(factory);
         return this;
     }
 
+    /**
+     * Set the context factory used to create new context instances
+     * @see #getContextFactory()
+     */
     public void setContextFactory(ContextFactory factory) {
         this.contextFactory = factory;
     }
 
+    /**
+     * Call {@link Cache#update()} method of session and global request cache.<br>
+     * Update method will only be called every 1000 ms.
+     */
     public void updateCache() {
         if(System.currentTimeMillis() - 1000L > lastCacheUpdate) {
             sessionCache.update();
@@ -244,11 +346,10 @@ public class JWebServer {
         }
     }
 
-    public Session getSession(UUID sessionId) {
-        updateCache();
-        return sessionCache.get(sessionId);
-    }
-
+    /**
+     * Calls {@link #updateCache()} and returns session belonging to the ip address.<br>
+     * Returns null if there is no session.
+     */
     public Session getSession(InetAddress owner) {
         updateCache();
         for(UUID sessionId : sessionCache.getAllKeys()) {
@@ -258,6 +359,9 @@ public class JWebServer {
         return null;
     }
 
+    /**
+     * Internal method used to generate session ids.
+     */
     private UUID generateSessionId() {
         UUID id = null;
         while(id == null || sessionCache.hasKey(id)) {
@@ -266,6 +370,11 @@ public class JWebServer {
         return id;
     }
 
+    /**
+     * Create a new session for the specified ip address.
+     * The created session will be stored in the session cache
+     * @return the newly created session
+     */
     public Session generateSession(InetAddress owner) {
         Session session = new Session(
                 generateSessionId(),
@@ -278,6 +387,9 @@ public class JWebServer {
         return session;
     }
 
+    /**
+     * Get writer for the specified type, returns null if there isn't one.
+     */
     public OutputWriter getWriter(Class<?> type) {
         Class<? extends OutputWriter> writerClass = writers.get(type);
         if(writerClass == null) return null;
@@ -285,10 +397,17 @@ public class JWebServer {
         return ReflectUtils.createInstance(writerClass);
     }
 
+    /**
+     * Get a map of all writers and the types of objects they can write
+     */
     public HashMap<Class<?>, Class<? extends OutputWriter>> getWriters() {
         return writers;
     }
 
+    /**
+     * Register a new writer for a certain type.
+     * @return the current JWebServer instance, used for chaining methods.
+     */
     public JWebServer withWriter(Class<?> type, Class<? extends OutputWriter> writer) {
         registerWriter(type, writer);
         return this;
@@ -399,16 +518,6 @@ public class JWebServer {
         return methods;
     }
 
-    public JWebServer withSessionCache(Cache<UUID, Session> cache) {
-        this.sessionCache = cache;
-        return this;
-    }
-
-    public JWebServer withGlobalRequestCache(Cache<String, CachedRequest> cache) {
-        this.globalRequestCache = cache;
-        return this;
-    }
-
     public JWebServer withBindAddress(InetSocketAddress bindAddress) {
         this.bindAddress = bindAddress;
         return this;
@@ -416,14 +525,6 @@ public class JWebServer {
 
     public void setBindAddress(InetSocketAddress bindAddress) {
         this.bindAddress = bindAddress;
-    }
-
-    public void setSessionCache(Cache<UUID, Session> sessionCache) {
-        this.sessionCache = sessionCache;
-    }
-
-    public void setGlobalRequestCache(Cache<String, CachedRequest> globalRequestCache) {
-        this.globalRequestCache = globalRequestCache;
     }
 
     public boolean isAlive() {

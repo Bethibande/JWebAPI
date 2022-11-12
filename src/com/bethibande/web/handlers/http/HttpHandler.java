@@ -11,6 +11,10 @@ import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
 import com.sun.net.httpserver.HttpExchange;
 
+/**
+ * An internal class handling all incoming requests.
+ * This invokes your methods, runs ParameterProcessors and fires invocation handlers
+ */
 public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
 
     private final JWebServer owner;
@@ -19,7 +23,7 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
         this.owner = owner;
     }
 
-    public boolean matches(URI uri, WebRequest request) { // TODO: refactor to remove duplicate code
+    private boolean matches(URI uri, WebRequest request) {
         URI.URIType type = uri.type();
         String path = request.getUri().getPath();
         String value = uri.value();
