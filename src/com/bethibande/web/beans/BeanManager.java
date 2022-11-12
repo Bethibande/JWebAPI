@@ -24,12 +24,7 @@ public class BeanManager {
     }
 
     private void init() {
-        this.factory = new BeanFactory() {
-            @Override
-            public <T extends Bean> T create(Class<T> type, ServerContext context) {
-                return ReflectUtils.autoWireNewInstance(type, context);
-            }
-        };
+        this.factory = ReflectUtils::autoWireNewInstance;
     }
 
     public void activate(Bean bean) {
@@ -38,6 +33,7 @@ public class BeanManager {
 
     public void storeActiveBeans() {
         activeBeans.forEach((type, bean) -> this.storeBean(bean));
+        activeBeans.clear();
     }
 
     private void invokeAnnotatedMethod(Object obj, Class<? extends Annotation> annotation) {
@@ -81,6 +77,7 @@ public class BeanManager {
         Object bean = getBean(type, con);
         invokeAnnotatedMethod(bean, PostDestroy.class);
         beans.remove(type);
+        activeBeans.remove(type);
     }
 
     public <T extends Bean> T getBean(Class<T> type, ServerContext context) {
@@ -88,8 +85,7 @@ public class BeanManager {
         return createBean(type, context);
     }
 
-    private <T extends Bean
-            > T getBeanFromSnapshot(Class<T> type, ServerContext context) {
+    private <T extends Bean> T getBeanFromSnapshot(Class<T> type, ServerContext context) {
         T bean = createBean(type, context);
         BeanSnapshot snapshot = beans.get(type);
         HashMap<Field, Object> state = snapshot.getState();
