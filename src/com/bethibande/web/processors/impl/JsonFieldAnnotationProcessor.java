@@ -23,6 +23,8 @@ public class JsonFieldAnnotationProcessor extends AnnotationProcessor<JsonField>
     public Object getValue(WebRequest request, JsonField annotation, Executable executable, Parameter parameter) {
         ServerContext context = LocalServerContext.getContext();
         if(context == null) throw new RuntimeException("Cannot process @JsonField annotation without context.");
+        Gson gson = request.getServer().getGson();
+
         if(!context.metadata().hasMeta("JsonData")) {
             String json = IOUtils.readString(
                     request.getExchange().getRequestBody(),
@@ -33,7 +35,7 @@ public class JsonFieldAnnotationProcessor extends AnnotationProcessor<JsonField>
 
             context.metadata().set(
                     "JsonData",
-                    new Gson().fromJson(json, JsonObject.class)
+                    gson.fromJson(json, JsonObject.class)
             );
         }
 
@@ -41,6 +43,6 @@ public class JsonFieldAnnotationProcessor extends AnnotationProcessor<JsonField>
 
         if(!jsonObject.has(annotation.value())) throw new RuntimeException("There is no such field '" + annotation.value() + "'!");
 
-        return new Gson().fromJson(jsonObject.get(annotation.value()), parameter.getType());
+        return gson.fromJson(jsonObject.get(annotation.value()), parameter.getType());
     }
 }

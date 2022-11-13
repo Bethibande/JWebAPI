@@ -27,6 +27,7 @@ import com.bethibande.web.types.ServerCacheConfig;
 import com.bethibande.web.types.ServerCacheSupplier;
 import com.bethibande.web.types.impl.DefaultCacheSupplierImpl;
 import com.bethibande.web.util.ReflectUtils;
+import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
@@ -66,6 +67,7 @@ public class JWebServer {
      * Charset used by writers
      */
     private Charset charset = StandardCharsets.UTF_8;
+    private Gson gson = new Gson();
 
     private ServerCacheConfig cacheConfig;
     private Cache<UUID, Session> sessionCache;
@@ -140,6 +142,24 @@ public class JWebServer {
         if(!isAlive()) return;
 
         stop();
+    }
+
+    /**
+     * Set the globally used gson instance, used read and write json data
+     * @see #getGson()
+     * @see com.bethibande.web.annotations.PostData
+     * @see com.bethibande.web.annotations.JsonField
+     */
+    public void setGson(Gson gson) {
+        this.gson = gson;
+    }
+
+    /**
+     * Get the globally used gson instance
+     * @see #setGson(Gson)
+     */
+    public Gson getGson() {
+        return gson;
     }
 
     /**

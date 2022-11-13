@@ -20,7 +20,7 @@ public class ObjectOutputHandler implements OutputHandler<Object> {
         ServerContext context = LocalServerContext.getContext();
         if(context == null) throw new RuntimeException("Cannot write object without context.");
 
-        byte[] data = new Gson().toJson(value).getBytes(context.metadata().getCharset());
+        byte[] data = request.getServer().getGson().toJson(value).getBytes(context.metadata().getCharset());
 
         RequestResponse response = request.getResponse();
         if(response.getContentType() == null) response.setContentType(ObjectOutputHandler.CONTENT_TYPE);

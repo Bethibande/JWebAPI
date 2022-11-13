@@ -1,5 +1,6 @@
 package com.bethibande.web.processors.impl;
 
+import com.bethibande.web.JWebServer;
 import com.bethibande.web.annotations.PostData;
 import com.bethibande.web.context.LocalServerContext;
 import com.bethibande.web.context.ServerContext;
@@ -21,16 +22,17 @@ public class PostDataAnnotationProcessor extends AnnotationProcessor<PostData> {
     public Object getValue(WebRequest request, PostData annotation, Executable executable, Parameter parameter) {
         ServerContext context = LocalServerContext.getContext();
         if(context == null) throw new RuntimeException("Invoking annotation processor without a context?");
+        JWebServer server = request.getServer();
 
         String json = IOUtils.readString(
                 request.getExchange().getRequestBody(),
                 request.getContentLength(),
-                request.getServer().getCharset(),
-                request.getServer().getBufferSize()
+                server.getCharset(),
+                server.getBufferSize()
         );
 
         if(json.isEmpty()) return null;
 
-        return new Gson().fromJson(json, parameter.getType());
+        return server.getGson().fromJson(json, parameter.getType());
     }
 }
