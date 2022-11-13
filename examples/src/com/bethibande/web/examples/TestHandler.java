@@ -9,6 +9,7 @@ import com.bethibande.web.types.RequestMethod;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 public class TestHandler {
 
@@ -65,7 +66,7 @@ public class TestHandler {
      * The @CacheRequest annotation caches the result server side, if global is true the response will be cached globally, if false the response will be cached in the current user session
      */
     @URI("/cache")
-    @CacheRequest(cacheTime = 10000L, global = true)
+    @CacheRequest(cacheTime = 10L, timeUnit = TimeUnit.SECONDS, global = true)
     public Object cacheTest() {
         return new Message(99, String.valueOf(ThreadLocalRandom.current().nextInt(Integer.MAX_VALUE)));
     }
@@ -74,7 +75,7 @@ public class TestHandler {
      * The @CacheRequest annotation caches the result server side, if global is true the response will be cached globally, if false the response will be cached in the current user session
      */
     @URI("/localCache")
-    @CacheRequest(cacheTime = 10000L)
+    @CacheRequest(cacheTime = 10L, timeUnit = TimeUnit.SECONDS)
     public Object localCacheTest() {
         return new Message(99, String.valueOf(ThreadLocalRandom.current().nextInt(Integer.MAX_VALUE)));
     }

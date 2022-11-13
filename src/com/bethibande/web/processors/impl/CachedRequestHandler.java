@@ -12,6 +12,7 @@ import com.bethibande.web.processors.AnnotatedInvocationHandler;
 import com.bethibande.web.types.MetaData;
 
 import java.lang.reflect.Method;
+import java.util.concurrent.TimeUnit;
 
 public class CachedRequestHandler extends AnnotatedInvocationHandler<CacheRequest> {
 
@@ -79,6 +80,6 @@ public class CachedRequestHandler extends AnnotatedInvocationHandler<CacheReques
         Cache<String, CachedRequest> requestCache = localMetadata.getAsType("localSessionCache", Cache.class);
 
         if(annotation.cacheTime() == 0) requestCache.put(path, cachedRequest);
-        if(annotation.cacheTime() > 0) requestCache.put(path, cachedRequest, annotation.cacheTime());
+        if(annotation.cacheTime() > 0) requestCache.put(path, cachedRequest, annotation.timeUnit().toMillis(annotation.cacheTime()));
     }
 }
