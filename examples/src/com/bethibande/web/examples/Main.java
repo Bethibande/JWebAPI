@@ -3,11 +3,16 @@ package com.bethibande.web.examples;
 import com.bethibande.web.JWebServer;
 import com.bethibande.web.examples.annotations.SecuredAnnotationProcessor;
 import com.bethibande.web.examples.permission.SecuredHandler;
+import com.bethibande.web.logging.ConsoleColors;
+import com.bethibande.web.logging.LoggerFactory;
+
+import java.util.logging.Level;
 
 public class Main {
 
     public static void main(String[] args) {
         JWebServer server = new JWebServer()
+                .withLogLevel(Level.ALL)
                 .withBindAddress(5544)
                 .withMethodInvocationHandler(new SecuredAnnotationProcessor())
                 .withHandler(TestHandler.class)
@@ -16,8 +21,6 @@ public class Main {
                 .withDebug(true);
 
         server.start();
-
-        System.out.println("Running!");
     }
 
 }

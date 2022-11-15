@@ -17,6 +17,8 @@ import com.bethibande.web.handlers.out.RequestResponseOutputHandler;
 import com.bethibande.web.io.ByteArrayWriter;
 import com.bethibande.web.io.OutputWriter;
 import com.bethibande.web.io.StreamWriter;
+import com.bethibande.web.logging.ConsoleColors;
+import com.bethibande.web.logging.LoggerFactory;
 import com.bethibande.web.processors.*;
 import com.bethibande.web.processors.impl.*;
 import com.bethibande.web.response.InputStreamWrapper;
@@ -38,10 +40,15 @@ import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static com.bethibande.web.logging.ConsoleColors.*;
 
 /**
  * This class represents a Http or Https Server.<br>
@@ -54,6 +61,7 @@ public class JWebServer {
 
     private HttpServer server;
 
+    private Logger logger;
     /**
      * @see #isDebug()
      */
@@ -88,9 +96,76 @@ public class JWebServer {
     }
 
     /**
+     * Set the logger instance used by this server
+     * @see #setLogger(Logger)
+     */
+    public JWebServer withLogger(Logger logger) {
+        setLogger(logger);
+        return this;
+    }
+
+    /**
+     * Set the logger instance used by the server
+     * @see #getLogger()
+     */
+    public void setLogger(Logger logger) {
+        this.logger = logger;
+    }
+
+    /**
+     * Get the logger instance used by the server
+     * @see #setLogger(Logger)
+     */
+    public Logger getLogger() {
+        return this.logger;
+    }
+
+    /**
+     * Set the loggers log level
+     * @see #setLogLevel(Level)
+     */
+    public JWebServer withLogLevel(Level level) {
+        setLogLevel(level);
+        return this;
+    }
+
+    /**
+     * Get the loggers log level
+     */
+    public Level getLogLevel() {
+        return this.logger.getLevel();
+    }
+
+    /**
+     * Set the loggers log level
+     */
+    public void setLogLevel(Level level) {
+        this.logger.setLevel(level);
+    }
+
+    /**
+     * Sets the loggers style
+     * @see #setLogStyle(LoggerFactory.LogStyle)
+     */
+    public JWebServer withLogStyle(LoggerFactory.LogStyle style) {
+        setLogStyle(style);
+        return this;
+    }
+
+    /**
+     * Sets the loggers style
+     */
+    public void setLogStyle(LoggerFactory.LogStyle style) {
+        LoggerFactory.setLogStyle(style, this.logger);
+    }
+
+    /**
      * Internal method used to initialize default values, caches, processors, handlers, suppliers and more
      */
     private void initValues() {
+        logger = LoggerFactory.createLogger();
+        logger.setLevel(Level.OFF);
+
         bindAddress = new InetSocketAddress("0.0.0.0", 80);
 
         cacheConfig = new ServerCacheConfig(
@@ -132,6 +207,8 @@ public class JWebServer {
         registerWriter(InputStreamWrapper.class, StreamWriter.class);
 
         setContextFactory(ServerContext::new);
+
+        logger.setLevel(Level.INFO);
     }
 
     /**
@@ -189,6 +266,7 @@ public class JWebServer {
      * @see #withCharset(Charset)
      */
     public void setCharset(Charset charset) {
+        logger.config(String.format("Update Charset %s > %s", this.charset.displayName(), charset.displayName()));
         this.charset = charset;
     }
 
@@ -198,6 +276,7 @@ public class JWebServer {
      * @see #withBufferSize(int)
      */
     public void setBufferSize(int bufferSize) {
+        logger.config(String.format("Update BufferSize %d > %d", this.bufferSize, bufferSize));
         this.bufferSize = bufferSize;
     }
 
@@ -262,6 +341,7 @@ public class JWebServer {
      * Set the cache supplier, used to create new cache instances
      */
     public void setCacheSupplier(ServerCacheSupplier supplier) {
+        logger.config("Update CacheSupplier");
         this.cacheSupplier = supplier;
     }
 
@@ -279,12 +359,14 @@ public class JWebServer {
      * Set the cache config, used to configure all caches used by this server.
      */
     public void setCacheConfig(ServerCacheConfig config) {
+        logger.config("Update CacheConfig");
         this.cacheConfig = config;
     }
 
     /**
      * @see #isDebug()
      */
+    @Deprecated(forRemoval = true)
     public JWebServer withDebug(boolean debug) {
         setDebug(debug);
         return this;
@@ -293,6 +375,7 @@ public class JWebServer {
     /**
      * @see #isDebug()
      */
+    @Deprecated(forRemoval = true)
     public void setDebug(boolean debug) {
         this.debug = debug;
     }
@@ -300,6 +383,7 @@ public class JWebServer {
     /**
      * If false, in case of an exception the stacktrace will be discarded and not be printed.
      */
+    @Deprecated(forRemoval = true)
     public boolean isDebug() {
         return debug;
     }
@@ -318,6 +402,7 @@ public class JWebServer {
      * Register an invocation handler, fired before and after invoking a method.
      */
     public void registerMethodInvocationHandler(MethodInvocationHandler handler) {
+        logger.config(String.format("Register MethodInvocationHandler > %s", handler.getClass().getName()));
         methodInvocationHandlers.add(handler);
     }
 
@@ -351,6 +436,7 @@ public class JWebServer {
      * @see #getContextFactory()
      */
     public void setContextFactory(ContextFactory factory) {
+        logger.config(String.format("Update ContextFactory > %s", factory.getClass().getName()));
         this.contextFactory = factory;
     }
 
@@ -359,6 +445,7 @@ public class JWebServer {
      * Update method will only be called every 1000 ms.
      */
     public void updateCache() {
+        logger.finest("Cache Update");
         if(System.currentTimeMillis() - 1000L > lastCacheUpdate) {
             sessionCache.update();
             globalRequestCache.update();
@@ -404,6 +491,8 @@ public class JWebServer {
 
         sessionCache.put(session.getSessionId(), session);
 
+        logger.fine(String.format("Create Session > %s %s", annotate(session.getSessionId().toString(), ORANGE), annotate(owner.getHostAddress(), BLUE)));
+
         return session;
     }
 
@@ -434,6 +523,7 @@ public class JWebServer {
     }
 
     public void registerWriter(Class<?> type, Class<? extends OutputWriter> writer) {
+        logger.config(String.format("Register Writer > %s for type %s", writer.getName(), type.getName()));
         writers.remove(type);
         writers.put(type, writer);
     }
@@ -502,6 +592,7 @@ public class JWebServer {
 
     public void registerMethod(Method method) {
         URI uri = method.getAnnotation(URI.class);
+        logger.finer(String.format("Register Method > %s:%s %s %s", method.getDeclaringClass().getName(), method.getName(), uri.value(), Arrays.toString(uri.methods())));
 
         if(method.getModifiers() == Modifier.STATIC) {
             this.methods.put(uri, new StaticMethodHandler(method));
@@ -511,6 +602,7 @@ public class JWebServer {
     }
 
     public void registerHandlerClass(Class<?> handler) {
+        logger.config(String.format("Register Class > %s", handler.getName()));
         for(Method method : handler.getDeclaredMethods()) {
             if(!method.isAnnotationPresent(URI.class)) continue;
 
@@ -544,6 +636,7 @@ public class JWebServer {
     }
 
     public void setBindAddress(InetSocketAddress bindAddress) {
+        logger.config(String.format("Set BindAddress > %s", annotate(bindAddress.getHostString(), BLUE)));
         this.bindAddress = bindAddress;
     }
 
@@ -554,6 +647,8 @@ public class JWebServer {
     public void stop() {
         server.stop(0);
         server = null;
+
+        logger.info(String.format("%s stopped", annotate("JWebAPI Server", BLUE + BOLD)));
     }
 
     public void start() {
@@ -582,6 +677,8 @@ public class JWebServer {
 
         this.server = server;
         server.start();
+
+        logger.info(String.format("%s started on %s", annotate("JWebAPI Server", BLUE + BOLD), annotate(bindAddress.getHostString(), MAGENTA)));
     }
 
 }
