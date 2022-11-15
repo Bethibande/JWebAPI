@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.TimeZone;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Function;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -12,10 +13,19 @@ import java.util.logging.Logger;
 
 public class LoggerFactory {
 
-    public static Logger createLogger() {
+    /**
+     * Method used to create loggers used by JWebServer class
+     * Log Levels,
+     * Info - General info, like server start/stop
+     * Config - "set" or "register" methods being called, also accounts for "with" method
+     * Fine - Session Creation, Incoming requests [...]
+     * Finer - Request timings
+     * Finest - Cache Updates, methods being registered [...]
+     */
+    public static Logger createLogger(ThreadPoolExecutor executor) {
         Logger logger = Logger.getAnonymousLogger();
         logger.setUseParentHandlers(false);
-        logger.addHandler(new StandardHandler());
+        logger.addHandler(new StandardHandler(executor));
 
         return logger;
     }
@@ -34,10 +44,13 @@ public class LoggerFactory {
         private static final DateTimeFormatter FORMATTER = new DateTimeFormatterBuilder().appendPattern("dd MMM yyyy mm:HH").toFormatter();
         private static final String STRING_FORMAT = "%s [%s] %s %s" + ConsoleColors.RESET;
 
+        private final ThreadPoolExecutor executor;
+
         private Function<Level, String> styleProvider;
         private String padding = "%30s";
 
-        public StandardHandler() {
+        public StandardHandler(ThreadPoolExecutor executor) {
+            this.executor = executor;
             this.styleProvider = this::styleSimple;
         }
 
@@ -55,9 +68,12 @@ public class LoggerFactory {
                 return ConsoleColors.BLUE + ConsoleColors.BOLD + levelStr + "   " + ConsoleColors.RESET;
             }
             if(level == Level.FINE) {
-                return ConsoleColors.BLUE + ConsoleColors.BOLD + "INFO   " + ConsoleColors.RESET;
+                return ConsoleColors.YELLOW + ConsoleColors.BOLD + "INFO   " + ConsoleColors.RESET;
             }
             if(level == Level.FINER) {
+                return ConsoleColors.YELLOW + ConsoleColors.BOLD + "INFO   " + ConsoleColors.RESET;
+            }
+            if(level == Level.FINEST) {
                 return ConsoleColors.MAGENTA + ConsoleColors.BOLD + "INFO   " + ConsoleColors.RESET;
             }
             if(level == Level.WARNING) {
@@ -69,9 +85,6 @@ public class LoggerFactory {
             if(level == Level.CONFIG) {
                 return ConsoleColors.GREEN + ConsoleColors.BOLD + levelStr + " " + ConsoleColors.RESET;
             }
-            if(level == Level.FINEST) {
-                return ConsoleColors.MAGENTA + ConsoleColors.BOLD + levelStr + " " + ConsoleColors.RESET;
-            }
 
             return null;
         }
@@ -79,8 +92,17 @@ public class LoggerFactory {
         private String styleFancy(Level level) {
             String levelStr = level.getName();
 
-            if(level == Level.INFO) { // TODO: add fine, finer and finest here
+            if(level == Level.INFO) {
                 return ConsoleColors.BACKGROUND_BLUE + ConsoleColors.BLACK + " " + levelStr + "    " + ConsoleColors.RESET;
+            }
+            if(level == Level.FINE) {
+                return ConsoleColors.BACKGROUND_YELLOW + ConsoleColors.BLACK + " INFO    " + ConsoleColors.RESET;
+            }
+            if(level == Level.FINER) {
+                return ConsoleColors.BACKGROUND_YELLOW + ConsoleColors.BLACK + " INFO    " + ConsoleColors.RESET;
+            }
+            if(level == Level.FINEST) {
+                return ConsoleColors.BACKGROUND_MAGENTA + ConsoleColors.BLACK + " INFO    " + ConsoleColors.RESET;
             }
             if(level == Level.WARNING) {
                 return ConsoleColors.BACKGROUND_ORANGE + ConsoleColors.BLACK + " " + levelStr + " " + ConsoleColors.RESET;
@@ -90,9 +112,6 @@ public class LoggerFactory {
             }
             if(level == Level.CONFIG) {
                 return ConsoleColors.BACKGROUND_GREEN + ConsoleColors.BLACK + " " + levelStr + "  " + ConsoleColors.RESET;
-            }
-            if(level == Level.FINEST) {
-                return ConsoleColors.BACKGROUND_MAGENTA + ConsoleColors.BLACK + " " + levelStr + "  " + ConsoleColors.RESET;
             }
             return null;
         }
@@ -107,11 +126,13 @@ public class LoggerFactory {
 
         @Override
         public void publish(LogRecord record) {
-            Level level = record.getLevel();
-            String levelStr = styleProvider.apply(level);
-            LocalDateTime date = LocalDateTime.ofInstant(record.getInstant(), TimeZone.getDefault().toZoneId());
+            executor.execute(() -> {
+                Level level = record.getLevel();
+                String levelStr = styleProvider.apply(level);
+                LocalDateTime date = LocalDateTime.ofInstant(record.getInstant(), TimeZone.getDefault().toZoneId());
 
-            System.out.println(String.format(STRING_FORMAT, FORMATTER.format(date), pad(Thread.currentThread().getName()), levelStr, record.getMessage()));
+                System.out.printf((STRING_FORMAT) + "%n", FORMATTER.format(date), pad(Thread.currentThread().getName()), levelStr, record.getMessage());
+            });
         }
 
         @Override

@@ -2,6 +2,7 @@ package com.bethibande.web.handlers.http;
 
 import com.bethibande.web.JWebServer;
 import com.bethibande.web.context.LocalServerContext;
+import com.bethibande.web.timings.TimingGenerator;
 import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.annotations.URI;
 import com.bethibande.web.handlers.MethodHandler;
@@ -10,6 +11,9 @@ import com.bethibande.web.io.OutputWriter;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
 import com.sun.net.httpserver.HttpExchange;
+
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 /**
  * An internal class handling all incoming requests.
@@ -25,17 +29,16 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
 
     private boolean matches(URI uri, WebRequest request) {
         URI.URIType type = uri.type();
-        String path = request.getUri().getPath();
-        String value = uri.value();
-        if(type.equals(URI.URIType.STRICT)) return path.equalsIgnoreCase(value);
-        if(type.equals(URI.URIType.STRING)) return path.startsWith(value);
-        if(type.equals(URI.URIType.REGEX)) return path.matches(value);
+        if(type.equals(URI.URIType.STRICT)) return request.getUri().getPath().equalsIgnoreCase(uri.value());
+        if(type.equals(URI.URIType.STRING)) return request.getUri().getPath().startsWith(uri.value());
+        if(type.equals(URI.URIType.REGEX)) return request.getUri().getPath().matches(uri.value());
         return false;
     }
 
     @Override
     public void handle(HttpExchange exchange) {
-        long start = System.currentTimeMillis();
+        TimingGenerator timingGenerator = new TimingGenerator();
+        timingGenerator.start(7);
         try {
             final WebRequest request = new WebRequest(owner, exchange);
 
@@ -49,46 +52,75 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
                     request
             ));
 
+            timingGenerator.keyframe(); // load session and context keyframe
+
             for(URI uri : owner.getMethods().keySet()) {
-                if(matches(uri, request)) {
-                    MethodHandler handler = owner.getMethods().get(uri);
+                if(!matches(uri, request)) continue;
+                timingGenerator.keyframe(); // find uri keyframe
 
-                    request.setMethod(handler.getMethod());
-                    RequestResponse response = handler.invoke(request);
-                    request.setResponse(response);
+                MethodHandler handler = owner.getMethods().get(uri);
 
-                    request.getExchange().getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+                request.setMethod(handler.getMethod());
+                RequestResponse response = handler.invoke(request);
+                request.setResponse(response);
 
-                    while(request.getResponse().getContentData() != null && owner.getWriters().get(request.getResponse().getContentData().getClass()) == null) {
-                        OutputHandler<?> outputHandler = owner.getOutputHandler(request.getResponse().getContentData().getClass());
-                        if(outputHandler == null) outputHandler = owner.getOutputHandler(Object.class);
+                timingGenerator.keyframe(); // invoke method keyframe
 
-                        ((OutputHandler<Object>) outputHandler).update(request.getResponse().getContentData(), request);
-                    }
+                request.getExchange().getResponseHeaders().set("Access-Control-Allow-Origin", "*");
 
-                    response = request.getResponse();
+                while(request.getResponse().getContentData() != null && owner.getWriters().get(request.getResponse().getContentData().getClass()) == null) {
+                    OutputHandler<?> outputHandler = owner.getOutputHandler(request.getResponse().getContentData().getClass());
+                    if(outputHandler == null) outputHandler = owner.getOutputHandler(Object.class);
 
-                    exchange.getResponseHeaders().putAll(response.getHeader());
-                    exchange.getResponseHeaders().set("Connection", "close");
-
-                    exchange.sendResponseHeaders(response.getStatusCode(), response.getContentLength());
-
-                    if(response.getContentLength() > 0) {
-                        OutputWriter writer = owner.getWriter(response.getContentData().getClass());
-                        if(writer == null) throw new RuntimeException("There is no writer for the type: '" + response.getContentData().getClass() + "'!");
-                        writer.write(request, response);
-                    }
-
-                    exchange.close();
-                    break;
+                    ((OutputHandler<Object>) outputHandler).update(request.getResponse().getContentData(), request);
                 }
+
+                response = request.getResponse();
+
+                timingGenerator.keyframe(); // handle return value keyframe
+
+                exchange.getResponseHeaders().putAll(response.getHeader());
+                exchange.getResponseHeaders().set("Connection", "close");
+
+                exchange.sendResponseHeaders(response.getStatusCode(), response.getContentLength());
+
+                timingGenerator.keyframe(); // send header keyframe
+
+                if(response.getContentLength() > 0) {
+                    OutputWriter writer = owner.getWriter(response.getContentData().getClass());
+                    if(writer == null) throw new RuntimeException("There is no writer for the type: '" + response.getContentData().getClass() + "'!");
+                    writer.write(request, response);
+                }
+
+                timingGenerator.keyframe(); // writing keyframe
+
+                exchange.close();
+                break;
             }
         } catch(Throwable th) {
-            if(owner.isDebug()) th.printStackTrace();
+            th.printStackTrace();
         }
 
         LocalServerContext.clearContext();
-        long end = System.currentTimeMillis();
-        if(owner.isDebug()) System.out.println((end-start) + " ms");
+        timingGenerator.keyframe(); // clean up keyframe
+
+        if(timingGenerator.isComplete()) {
+            timingGenerator.convert(TimeUnit.NANOSECONDS, TimeUnit.MICROSECONDS);
+            owner.getLogger().fine(String.format("Incoming %s > %s > %d microseconds", exchange.getRemoteAddress().toString().substring(1), exchange.getRequestURI().getPath(), timingGenerator.getTotalTime()));
+            logTimings(owner.getLogger(), timingGenerator);
+        }
     }
+
+    private void logTimings(Logger logger, TimingGenerator timings) {
+        logger.finer(String.format("Timings > Total %d microseconds > Load Session and Context %d, find uri %d, invoke method %d, handle return value %d, send header %d, writing %d, clean up %d",
+                timings.getTotalTime(),
+                timings.getTiming(0),
+                timings.getTiming(1),
+                timings.getTiming(2),
+                timings.getTiming(3),
+                timings.getTiming(4),
+                timings.getTiming(5),
+                timings.getTiming(6)));
+    }
+
 }

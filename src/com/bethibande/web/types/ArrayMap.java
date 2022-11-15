@@ -42,16 +42,12 @@ public class ArrayMap<K, V> implements Map<K, V> {
         this.valueArraySupplier = length -> ArrayUtils.createArray(this.valueType, length);
     }
 
-    public ArrayMap(Function<Integer, K[]> keyArraySupplier, Function<Integer, V[]> valueArraySupplier) {
-        try {
-            this.keyType = (Class<K>)keyArraySupplier.getClass().getMethod("apply", Integer.class).getReturnType();
-            this.valueType = (Class<V>)valueArraySupplier.getClass().getMethod("apply", Integer.class).getReturnType();
+    public ArrayMap(Class<K> keyType, Function<Integer, K[]> keyArraySupplier, Class<V> valueType, Function<Integer, V[]> valueArraySupplier) {
+        this.keyType = keyType;
+        this.valueType = valueType;
 
-            this.keyArraySupplier = keyArraySupplier;
-            this.valueArraySupplier = valueArraySupplier;
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        }
+        this.keyArraySupplier = keyArraySupplier;
+        this.valueArraySupplier = valueArraySupplier;
     }
 
     public void sort(Comparator<Entry<K, V>> comparator) {

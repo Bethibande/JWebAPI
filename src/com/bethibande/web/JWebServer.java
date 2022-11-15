@@ -17,7 +17,6 @@ import com.bethibande.web.handlers.out.RequestResponseOutputHandler;
 import com.bethibande.web.io.ByteArrayWriter;
 import com.bethibande.web.io.OutputWriter;
 import com.bethibande.web.io.StreamWriter;
-import com.bethibande.web.logging.ConsoleColors;
 import com.bethibande.web.logging.LoggerFactory;
 import com.bethibande.web.processors.*;
 import com.bethibande.web.processors.impl.*;
@@ -39,11 +38,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -59,6 +55,7 @@ public class JWebServer {
 
     private InetSocketAddress bindAddress;
 
+    private ScheduledThreadPoolExecutor executor;
     private HttpServer server;
 
     private Logger logger;
@@ -83,6 +80,7 @@ public class JWebServer {
     private volatile long lastCacheUpdate = 0;
 
     private List<ParameterProcessor> processors = new ArrayList<>();
+    //private ArrayMap<URI, MethodHandler> methods = new ArrayMap<URI, MethodHandler>(URI.class, URI[]::new, MethodHandler.class, MethodHandler[]::new);
     private HashMap<URI, MethodHandler> methods = new HashMap<>();
     private HashMap<Class<?>, OutputHandler<?>> outputHandlers = new HashMap<>();
     private HashMap<Class<?>, Class<? extends OutputWriter>> writers = new HashMap<>();
@@ -163,7 +161,8 @@ public class JWebServer {
      * Internal method used to initialize default values, caches, processors, handlers, suppliers and more
      */
     private void initValues() {
-        logger = LoggerFactory.createLogger();
+        executor = new ScheduledThreadPoolExecutor(10);
+        logger = LoggerFactory.createLogger(executor);
         logger.setLevel(Level.OFF);
 
         bindAddress = new InetSocketAddress("0.0.0.0", 80);
@@ -445,8 +444,8 @@ public class JWebServer {
      * Update method will only be called every 1000 ms.
      */
     public void updateCache() {
-        logger.finest("Cache Update");
-        if(System.currentTimeMillis() - 1000L > lastCacheUpdate) {
+        if(System.currentTimeMillis() > lastCacheUpdate + 1000L) {
+            logger.finest("Cache Update");
             sessionCache.update();
             globalRequestCache.update();
             lastCacheUpdate = System.currentTimeMillis();
@@ -458,10 +457,12 @@ public class JWebServer {
      * Returns null if there is no session.
      */
     public Session getSession(InetAddress owner) {
-        updateCache();
+        this.updateCache();
         for(UUID sessionId : sessionCache.getAllKeys()) {
             Session session = sessionCache.get(sessionId);
-            if(session.getOwner().equals(owner)) return session;
+            if(session.getOwner().equals(owner)) {
+                return session;
+            }
         }
         return null;
     }
@@ -557,6 +558,7 @@ public class JWebServer {
     }
 
     public <T> void registerOutputHandler(Class<T> type, OutputHandler<T> handler) {
+        logger.config(String.format("Register OutputHandler > %s for type %s", handler.getClass().getName(), type.getName()));
         outputHandlers.put(type, handler);
     }
 
@@ -569,6 +571,7 @@ public class JWebServer {
     }
 
     public void registerProcessor(ParameterProcessor processor) {
+        logger.config(String.format("Register ParameterProcessor > %s", processor.getClass().getName()));
         processors.add(processor);
     }
 
@@ -592,7 +595,7 @@ public class JWebServer {
 
     public void registerMethod(Method method) {
         URI uri = method.getAnnotation(URI.class);
-        logger.finer(String.format("Register Method > %s:%s %s %s", method.getDeclaringClass().getName(), method.getName(), uri.value(), Arrays.toString(uri.methods())));
+        logger.finest(String.format("Register Method > %s:%s %s %s", method.getDeclaringClass().getName(), method.getName(), uri.value(), Arrays.toString(uri.methods())));
 
         if(method.getModifiers() == Modifier.STATIC) {
             this.methods.put(uri, new StaticMethodHandler(method));
@@ -626,17 +629,17 @@ public class JWebServer {
         return processors;
     }
 
-    public HashMap<URI, MethodHandler> getMethods() {
+    public Map<URI, MethodHandler> getMethods() {
         return methods;
     }
 
     public JWebServer withBindAddress(InetSocketAddress bindAddress) {
-        this.bindAddress = bindAddress;
+        setBindAddress(bindAddress);
         return this;
     }
 
     public void setBindAddress(InetSocketAddress bindAddress) {
-        logger.config(String.format("Set BindAddress > %s", annotate(bindAddress.getHostString(), BLUE)));
+        logger.config(String.format("Set BindAddress > %s", annotate(bindAddress.toString().substring(1), BLUE)));
         this.bindAddress = bindAddress;
     }
 
@@ -676,9 +679,10 @@ public class JWebServer {
         if(isAlive()) stop();
 
         this.server = server;
+        server.setExecutor(executor);
         server.start();
 
-        logger.info(String.format("%s started on %s", annotate("JWebAPI Server", BLUE + BOLD), annotate(bindAddress.getHostString(), MAGENTA)));
+        logger.info(String.format("%s started on %s", annotate("JWebAPI Server", BLUE + BOLD), annotate(bindAddress.toString().substring(1), MAGENTA)));
     }
 
 }

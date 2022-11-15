@@ -1,8 +1,6 @@
 package com.bethibande.web.cache;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.*;
 
 public class Cache<K, V> {
 
@@ -79,8 +77,8 @@ public class Cache<K, V> {
         long date = Long.MAX_VALUE;
         K oldest = null;
 
-        for(CacheItem<K, V> item : cache.values()) {
-            if(item.getExpirationDate() < date) {
+        for (CacheItem<K, V> item : cache.values()) {
+            if (item.getExpirationDate() < date) {
                 date = item.getExpirationDate();
                 oldest = item.getKey();
             }
@@ -97,14 +95,8 @@ public class Cache<K, V> {
             makeSpace();
         }
 
-        Collection<K> expired = new ArrayList<>();
-        for(CacheItem<K, V> item : cache.values()) {
-            if(item.getExpirationDate() <= System.currentTimeMillis()) {
-                expired.add(item.getKey());
-            }
-        }
-
-        expired.forEach(this::remove);
+        final long currentTimeMillis = System.currentTimeMillis();
+        cache.entrySet().removeIf(entry -> entry.getValue().getExpirationDate() <= currentTimeMillis);
     }
 
     public void put(K key, V value) {
