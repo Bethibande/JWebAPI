@@ -27,6 +27,16 @@ public class BeanManager {
         this.factory = ReflectUtils::autoWireNewInstance;
     }
 
+    /**
+     * Gets bean using {@link #getBean(Class, ServerContext)}, activates it and then returns it
+     */
+    public <T extends Bean> T activeBean(Class<T> type, ServerContext context) {
+        T bean = getBean(type, context);
+        activeBeans.put(type, bean);
+
+        return bean;
+    }
+
     public void activate(Bean bean) {
         activeBeans.put(bean.getClass(), bean);
     }

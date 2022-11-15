@@ -22,11 +22,12 @@ public class InstanceMethodHandler extends MethodHandler {
     @Override
     public RequestResponse invoke(WebRequest request) {
         JWebServer server = request.getServer();
+        Method method = getMethod();
 
         for(MethodInvocationHandler handler : server.getMethodInvocationHandlers()) {
             if(request.isFinished()) break;
 
-            handler.beforeInvocation(getMethod(), request, server);
+            handler.beforeInvocation(method, request, server);
         }
         if(request.isFinished()) return request.getResponse();
 
@@ -34,13 +35,13 @@ public class InstanceMethodHandler extends MethodHandler {
 
         try {
             Object value = getMethod().invoke(instance, request.getMethodInvocationParameters());
-            if(value != null) request.getResponse().setContentData(value);
+            request.getResponse().setContentData(value);
         } catch(IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
 
         for(MethodInvocationHandler handler : server.getMethodInvocationHandlers()) {
-            handler.afterInvocation(getMethod(), request, server);
+            handler.afterInvocation(method, request, server);
         }
 
         return request.getResponse();

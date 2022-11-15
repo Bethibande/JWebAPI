@@ -24,9 +24,10 @@ public abstract class MethodHandler {
 
     protected void prepare(WebRequest request) {
         JWebServer server = request.getServer();
+        Parameter[] parameters = method.getParameters();
 
-        for(int i = 0; i < method.getParameterCount(); i++) {
-            Parameter parameter = method.getParameters()[i];
+        for(int i = 0; i < parameters.length; i++) {
+            Parameter parameter = parameters[i];
 
             for(ParameterProcessor processor : server.getProcessors()) {
                 processor.process(request, i, method, parameter);

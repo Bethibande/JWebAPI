@@ -6,6 +6,7 @@ import com.bethibande.web.context.LocalServerContext;
 import com.bethibande.web.context.ServerContext;
 import com.bethibande.web.processors.ParameterProcessor;
 import com.bethibande.web.sessions.Session;
+import com.bethibande.web.types.MetaData;
 import com.bethibande.web.types.WebRequest;
 
 import java.lang.reflect.Executable;
@@ -18,14 +19,14 @@ public class BeanParameterProcessor implements ParameterProcessor {
         if(Bean.class.isAssignableFrom(parameter.getType())) {
             ServerContext context = LocalServerContext.getContext();
             Session session = context.session();
+            MetaData meta = session.getMeta();
 
-            if(!session.getMeta().hasMeta("localBeanManager")) {
-                session.getMeta().set("localBeanManager", new BeanManager());
+            if(!meta.hasMeta("localBeanManager")) {
+                meta.set("localBeanManager", new BeanManager());
             }
 
-            BeanManager beanManager = session.getMeta().getAsType("localBeanManager", BeanManager.class);
-            Bean bean = beanManager.getBean((Class<Bean>) parameter.getType(), context);
-            beanManager.activate(bean);
+            BeanManager beanManager = meta.getAsType("localBeanManager", BeanManager.class);
+            Bean bean = beanManager.activeBean((Class<Bean>) parameter.getType(), context);
 
             request.setParameter(parameterIndex, bean);
         }
