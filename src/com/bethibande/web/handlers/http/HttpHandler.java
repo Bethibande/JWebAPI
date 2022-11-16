@@ -10,6 +10,7 @@ import com.bethibande.web.handlers.out.OutputHandler;
 import com.bethibande.web.io.OutputWriter;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
+import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.util.concurrent.TimeUnit;
@@ -66,7 +67,6 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
 
                 timingGenerator.keyframe(); // invoke method keyframe
 
-                request.getExchange().getResponseHeaders().set("Access-Control-Allow-Origin", "*");
 
                 while(request.getResponse().getContentData() != null && owner.getWriters().get(request.getResponse().getContentData().getClass()) == null) {
                     OutputHandler<?> outputHandler = owner.getOutputHandler(request.getResponse().getContentData().getClass());
@@ -79,8 +79,10 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
 
                 timingGenerator.keyframe(); // handle return value keyframe
 
-                exchange.getResponseHeaders().putAll(response.getHeader());
-                exchange.getResponseHeaders().set("Connection", "close");
+                Headers responseHeader = exchange.getResponseHeaders();
+                responseHeader.putAll(response.getHeader());
+                responseHeader.set("Connection", "close");
+                responseHeader.set("Access-Control-Allow-Origin", "*");
 
                 exchange.sendResponseHeaders(response.getStatusCode(), response.getContentLength());
 

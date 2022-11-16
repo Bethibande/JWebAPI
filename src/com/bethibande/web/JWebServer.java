@@ -643,19 +643,7 @@ public class JWebServer {
     public void start() {
         try {
             HttpServer server = HttpServer.create(bindAddress, 100);
-            server.createContext("/", new HttpHandler(this));
             start(server);
-
-            this.sessionCache = cacheSupplier.getSessionCache(
-                    this,
-                    cacheConfig
-            );
-
-            this.globalRequestCache = cacheSupplier.getRequestCache(
-                    this,
-                    cacheConfig,
-                    CacheType.GLOBAL_REQUEST_CACHE
-            );
         } catch(IOException e) {
             e.printStackTrace();
         }
@@ -667,6 +655,19 @@ public class JWebServer {
         this.server = server;
         server.setExecutor(executor);
         server.start();
+
+        this.sessionCache = cacheSupplier.getSessionCache(
+                this,
+                cacheConfig
+        );
+
+        this.globalRequestCache = cacheSupplier.getRequestCache(
+                this,
+                cacheConfig,
+                CacheType.GLOBAL_REQUEST_CACHE
+        );
+
+        server.createContext("/", new HttpHandler(this));
 
         logger.info(String.format("%s started on %s", annotate("JWebAPI Server", BLUE + BOLD), annotate(bindAddress.toString().substring(1), MAGENTA)));
     }
