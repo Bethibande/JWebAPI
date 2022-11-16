@@ -77,7 +77,6 @@ public class JWebServer {
     private ServerCacheConfig cacheConfig;
     private Cache<UUID, Session> sessionCache;
     private Cache<String, CachedRequest> globalRequestCache;
-    private volatile long lastCacheUpdate = 0;
 
     private List<ParameterProcessor> processors = new ArrayList<>();
     //private ArrayMap<URI, MethodHandler> methods = new ArrayMap<URI, MethodHandler>(URI.class, URI[]::new, MethodHandler.class, MethodHandler[]::new);
@@ -172,15 +171,18 @@ public class JWebServer {
                 new CacheConfig()
                         .withLifetimeType(CacheLifetimeType.ON_ACCESS)
                         .withMaxItems(100)
-                        .withMaxLifetime(TimeUnit.MINUTES.toMillis(10)),
+                        .withMaxLifetime(TimeUnit.MINUTES.toMillis(10))
+                        .withUpdateTimeout(TimeUnit.MINUTES.toMillis(1)),
                 new CacheConfig()
                         .withLifetimeType(CacheLifetimeType.ON_CREATION)
                         .withMaxLifetime(10000L)
-                        .withMaxItems(100),
+                        .withMaxItems(100)
+                        .withUpdateTimeout(TimeUnit.SECONDS.toMillis(2)),
                 new CacheConfig()
                         .withLifetimeType(CacheLifetimeType.ON_CREATION)
                         .withMaxLifetime(10000L)
                         .withMaxItems(10)
+                        .withUpdateTimeout(TimeUnit.SECONDS.toMillis(1))
         );
 
         setCacheSupplier(new DefaultCacheSupplierImpl(Cache::new, Cache::new));
@@ -299,21 +301,7 @@ public class JWebServer {
     }
 
     /**
-     * Gets the config used to configure caches, default value <br>
-     * {@code cacheConfig = new ServerCacheConfig(
-     *                 new CacheConfig()
-     *                         .withLifetimeType(CacheLifetimeType.ON_ACCESS)
-     *                         .withMaxItems(100)
-     *                         .withMaxLifetime(TimeUnit.MINUTES.toMillis(10)),
-     *                 new CacheConfig()
-     *                         .withLifetimeType(CacheLifetimeType.ON_CREATION)
-     *                         .withMaxLifetime(10000L)
-     *                         .withMaxItems(100),
-     *                 new CacheConfig()
-     *                         .withLifetimeType(CacheLifetimeType.ON_CREATION)
-     *                         .withMaxLifetime(10000L)
-     *                         .withMaxItems(10)
-     *         );}
+     * Gets the config used to configure caches
      */
     public ServerCacheConfig getCacheConfig() {
         return cacheConfig;
@@ -445,12 +433,9 @@ public class JWebServer {
      * Update method will only be called every 1000 ms.
      */
     public void updateCache() {
-        if(System.currentTimeMillis() > lastCacheUpdate + 1000L) {
-            logger.finest("Cache Update");
-            sessionCache.update();
-            globalRequestCache.update();
-            lastCacheUpdate = System.currentTimeMillis();
-        }
+        boolean sessionUpdate = sessionCache.update();
+        boolean globalUpdate = globalRequestCache.update();
+        if(sessionUpdate || globalUpdate) logger.finest("Cache Update");
     }
 
     /**

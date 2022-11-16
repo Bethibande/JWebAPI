@@ -1,6 +1,9 @@
 package com.bethibande.web.cache;
 
+import org.jetbrains.annotations.Range;
+
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class Cache<K, V> {
 
@@ -9,6 +12,9 @@ public class Cache<K, V> {
     private long maxLifetime;
     private int maxItems = Integer.MAX_VALUE;
     private CacheLifetimeType lifetimeType;
+
+    private long lastCacheUpdate = 0;
+    private long cacheUpdateTimeout = 0;
 
     /**
      * Load config values
@@ -19,6 +25,7 @@ public class Cache<K, V> {
         this.maxItems = config.getMaxItems();
         this.maxLifetime = config.getMaxLifetime();
         this.lifetimeType = config.getLifetimeType();
+        this.cacheUpdateTimeout = config.getUpdateTimeout();
 
         return this;
     }
@@ -88,15 +95,56 @@ public class Cache<K, V> {
     }
 
     /**
-     * Updates the cache, removes items if the cache exceeds the maxItems size and removes expired entries.
+     * Sets a timeout for the update method, no matter how often the method is called, it will only be executed after the timeout has passed.
+     * @param timeout timeout in the specified time unit, will be converted to ms
+     * @param timeUnit timeunit for timeout parameter
+     * @see #setCacheUpdateTimeout(long)
+     * @see #update()
      */
-    public void update() {
+    public void setCacheUpdateTimeout(@Range(from = 0, to = Long.MAX_VALUE) long timeout, TimeUnit timeUnit) {
+        setCacheUpdateTimeout(timeUnit.toMillis(timeout));
+    }
+
+    /**
+     * Sets a timeout for the update method, no matter how often the method is called, it will only be executed after the timeout has passed.
+     * @param timeout timeout time in ms
+     * @see #setCacheUpdateTimeout(long, TimeUnit)
+     * @see #update()
+     */
+    public void setCacheUpdateTimeout(@Range(from = 0, to = Long.MAX_VALUE) long timeout) {
+        this.cacheUpdateTimeout = timeout;
+    }
+
+    /**
+     * Get the cache update method timeout value, for more details, see {@link #setCacheUpdateTimeout(long)} or {@link #update()}
+     * @return timeout time in ms
+     */
+    public long getCacheUpdateTimeout() {
+        return cacheUpdateTimeout;
+    }
+
+    /**
+     * Updates the cache, removes items if the cache exceeds the maxItems size and removes expired entries.
+     * If cacheUpdateTimeout value is set, cacheUpdateTimeout amount of time will have to pass before the next update() call.
+     * If update() is called before the timeout has passed, false will be returned.
+     * @return true if cache was updated
+     * @see #setCacheUpdateTimeout(long)
+     */
+    public boolean update() {
+        final long currentTimeMillis = System.currentTimeMillis();
+        if(cacheUpdateTimeout != 0 && lastCacheUpdate + cacheUpdateTimeout > currentTimeMillis) {
+            return false;
+        }
+
         if(cache.size() > maxItems) {
             makeSpace();
         }
 
-        final long currentTimeMillis = System.currentTimeMillis();
         cache.entrySet().removeIf(entry -> entry.getValue().getExpirationDate() <= currentTimeMillis);
+
+        lastCacheUpdate = currentTimeMillis;
+
+        return true;
     }
 
     public void put(K key, V value) {

@@ -12,7 +12,6 @@ import com.bethibande.web.processors.AnnotatedInvocationHandler;
 import com.bethibande.web.types.MetaData;
 
 import java.lang.reflect.Method;
-import java.util.concurrent.TimeUnit;
 
 public class CachedRequestHandler extends AnnotatedInvocationHandler<CacheRequest> {
 
@@ -37,12 +36,9 @@ public class CachedRequestHandler extends AnnotatedInvocationHandler<CacheReques
         if(!localMetadata.hasMeta("localSessionCache")) return;
 
         Cache<String, CachedRequest> requestCache = localMetadata.getAsType("localSessionCache", Cache.class);
-        long lastUpdate = localMetadata.getLong("lastLocalSessionCacheUpdate");
 
-        if(System.currentTimeMillis() - 1000L > lastUpdate) {
-            requestCache.update();
-            localMetadata.set("lastLocalSessionCacheUpdate", System.currentTimeMillis());
-        }
+        boolean update = requestCache.update();
+        if(update) server.getLogger().finest("Local Cache Update");
 
         CachedRequest cachedRequest = requestCache.get(path);
         if(cachedRequest == null) return;
@@ -74,7 +70,6 @@ public class CachedRequestHandler extends AnnotatedInvocationHandler<CacheReques
                             CacheType.LOCAL_REQUEST_CACHE
                     )
             );
-            localMetadata.set("lastLocalSessionCacheUpdate", 0L);
         }
 
         Cache<String, CachedRequest> requestCache = localMetadata.getAsType("localSessionCache", Cache.class);
