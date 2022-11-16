@@ -3,7 +3,10 @@ package com.bethibande.web.logging;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Function;
 import java.util.logging.Handler;
@@ -39,10 +42,31 @@ public class LoggerFactory {
         SIMPLE
     }
 
+    private record LogMessage(LogRecord record, DateTimeFormatter formatter, Thread thread, String format, String padding, Function<Level, String> styleProvider) { };
+
     private static class LogPrinter {
 
-        public synchronized void submit(String message, Object... args) {
-            System.out.printf(message, args);
+        private volatile LinkedList<LogMessage> messageQueue = new LinkedList<>();
+
+        public void submit(LogRecord record, DateTimeFormatter formatter, String format, String padding, Function<Level, String> styleProvider) {
+            messageQueue.offer(new LogMessage(record, formatter, Thread.currentThread(), format, padding, styleProvider));
+        }
+
+        public synchronized void print() {
+            final LogMessage message = messageQueue.poll();
+            if(message == null) return;
+
+            final LogRecord record = message.record();
+
+            Level level = record.getLevel();
+            String levelStr = message.styleProvider().apply(level);
+            LocalDateTime date = LocalDateTime.ofInstant(record.getInstant(), TimeZone.getDefault().toZoneId());
+
+            System.out.printf(message.format() + "%n",
+                    message.formatter().format(date),
+                    String.format(message.padding, message.thread().getName()).replaceFirst("0+", " "),
+                    levelStr,
+                    record.getMessage());
         }
 
     }
@@ -130,20 +154,10 @@ public class LoggerFactory {
             this.padding = "%" + length + "s";
         }
 
-        private String pad(String str) {
-            return String.format(padding, str).replaceFirst("0+", " ");
-        }
-
         @Override
         public void publish(LogRecord record) {
-            executor.execute(() -> {
-                Level level = record.getLevel();
-                String levelStr = styleProvider.apply(level);
-                LocalDateTime date = LocalDateTime.ofInstant(record.getInstant(), TimeZone.getDefault().toZoneId());
-
-                //System.out.printf((STRING_FORMAT) + "%n", FORMATTER.format(date), pad(Thread.currentThread().getName()), levelStr, record.getMessage());
-                printer.submit((STRING_FORMAT) + "%n", FORMATTER.format(date), pad(Thread.currentThread().getName()), levelStr, record.getMessage());
-            });
+            printer.submit(record, FORMATTER, STRING_FORMAT, padding, styleProvider);
+            executor.execute(() -> printer.print());
         }
 
         @Override
