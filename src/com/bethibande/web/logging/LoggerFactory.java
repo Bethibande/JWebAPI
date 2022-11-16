@@ -39,6 +39,14 @@ public class LoggerFactory {
         SIMPLE
     }
 
+    private static class LogPrinter {
+
+        public synchronized void submit(String message, Object... args) {
+            System.out.printf(message, args);
+        }
+
+    }
+
     private static class StandardHandler extends Handler {
 
         private static final DateTimeFormatter FORMATTER = new DateTimeFormatterBuilder().appendPattern("dd MMM yyyy mm:HH").toFormatter();
@@ -48,6 +56,8 @@ public class LoggerFactory {
 
         private Function<Level, String> styleProvider;
         private String padding = "%30s";
+
+        private LogPrinter printer = new LogPrinter();
 
         public StandardHandler(ThreadPoolExecutor executor) {
             this.executor = executor;
@@ -131,7 +141,8 @@ public class LoggerFactory {
                 String levelStr = styleProvider.apply(level);
                 LocalDateTime date = LocalDateTime.ofInstant(record.getInstant(), TimeZone.getDefault().toZoneId());
 
-                System.out.printf((STRING_FORMAT) + "%n", FORMATTER.format(date), pad(Thread.currentThread().getName()), levelStr, record.getMessage());
+                //System.out.printf((STRING_FORMAT) + "%n", FORMATTER.format(date), pad(Thread.currentThread().getName()), levelStr, record.getMessage());
+                printer.submit((STRING_FORMAT) + "%n", FORMATTER.format(date), pad(Thread.currentThread().getName()), levelStr, record.getMessage());
             });
         }
 

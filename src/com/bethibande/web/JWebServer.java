@@ -138,6 +138,7 @@ public class JWebServer {
      * Set the loggers log level
      */
     public void setLogLevel(Level level) {
+        logger.config(String.format("Update LogLevel %s > %s", this.logger.getLevel().getName(), level.getName()));
         this.logger.setLevel(level);
     }
 
