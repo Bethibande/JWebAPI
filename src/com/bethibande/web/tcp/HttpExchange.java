@@ -90,6 +90,7 @@ public class HttpExchange extends com.sun.net.httpserver.HttpExchange {
     @Override
     public void sendResponseHeaders(int rCode, long responseLength) throws IOException {
         this.responseCode = rCode;
+        this.responseHeaders.set("Content-Length", String.valueOf(responseLength));
 
         StringBuilder sb = new StringBuilder(version + " " + rCode + " OK\r\n"); // TODO: Message
         for(Map.Entry<String, List<String>> entry : responseHeaders.entrySet()) {

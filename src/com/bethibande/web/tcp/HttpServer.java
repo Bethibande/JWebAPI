@@ -35,6 +35,10 @@ public class HttpServer extends com.sun.net.httpserver.HttpServer {
     private byte[] readHeader(InputStream in) throws IOException {
         byte[] header = new byte[2048];
         int length = 0;
+
+        in.readNBytes(header, length, 14);
+        length += 14;
+
         while(true) {
             in.readNBytes(header, length, 1);
             length++;
@@ -49,9 +53,7 @@ public class HttpServer extends com.sun.net.httpserver.HttpServer {
 
     private void handleClient(Socket client) {
         try {
-            long start = System.nanoTime();
             InputStream in = client.getInputStream();
-            OutputStream out = client.getOutputStream();
 
             byte[] header = readHeader(in);
             String headerStr = new String(header, StandardCharsets.UTF_8);
@@ -83,9 +85,6 @@ public class HttpServer extends com.sun.net.httpserver.HttpServer {
                     entry.getValue().handle(exchange);
                 }
             }
-
-            long end = System.nanoTime();
-            System.out.println(TimeUnit.NANOSECONDS.toMicros(end-start));
         } catch(IOException e) {
             e.printStackTrace();
         }
@@ -94,8 +93,9 @@ public class HttpServer extends com.sun.net.httpserver.HttpServer {
     private void accept() {
         try {
             Socket client = socket.accept();
-            executor.execute(() -> this.handleClient(client));
             executor.execute(this::accept);
+
+            this.handleClient(client);
         } catch(IOException e) {
             e.printStackTrace();
         }
