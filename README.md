@@ -1,7 +1,7 @@
 # JWebAPI 2-rc1
 A simple framework for easy creation of simple http servers/clients<br>
 <br>
-### Please note that the current v2 version is not yet usable, code of the 1.1.1 version can be found [here](https://github.com/Bethibande/JWebAPI/tree/v1.1.1)
+### Please note that the current v2 version is not yet stable, code of the 1.1.1 version can be found [here](https://github.com/Bethibande/JWebAPI/tree/v1.1.1)
 
 ## Overview
 - [Download](#download)
