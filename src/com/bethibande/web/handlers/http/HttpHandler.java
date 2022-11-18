@@ -56,7 +56,7 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
 
             timingGenerator.keyframe(); // load session and context keyframe
 
-            for(URIObject uri : owner.getMethods().keySet()) {
+            for(URIObject uri : owner.getMethods()) {
                 if(!uri.isApplicable(request.getUri().getPath())) continue;
                 timingGenerator.keyframe(); // find uri keyframe
 

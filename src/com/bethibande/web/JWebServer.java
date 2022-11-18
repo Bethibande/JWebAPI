@@ -23,10 +23,7 @@ import com.bethibande.web.processors.impl.*;
 import com.bethibande.web.response.InputStreamWrapper;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
-import com.bethibande.web.types.CacheType;
-import com.bethibande.web.types.ServerCacheConfig;
-import com.bethibande.web.types.ServerCacheSupplier;
-import com.bethibande.web.types.URIObject;
+import com.bethibande.web.types.*;
 import com.bethibande.web.types.impl.DefaultCacheSupplierImpl;
 import com.bethibande.web.util.ReflectUtils;
 import com.google.gson.Gson;
@@ -82,7 +79,7 @@ public class JWebServer {
 
     private List<ParameterProcessor> processors = new ArrayList<>();
     //private ArrayMap<URIObject, MethodHandler> methods = new ArrayMap<>(URIObject.class, URIObject[]::new, MethodHandler.class, MethodHandler[]::new);
-    private HashMap<URIObject, MethodHandler> methods = new HashMap<>();
+    private SimpleMap<URIObject, MethodHandler> methods = new SimpleMap<>(URIObject.class, MethodHandler.class);
     private HashMap<Class<?>, OutputHandler<?>> outputHandlers = new HashMap<>();
     private HashMap<Class<?>, Class<? extends OutputWriter>> writers = new HashMap<>();
     private List<MethodInvocationHandler> methodInvocationHandlers = new ArrayList<>();
@@ -617,7 +614,7 @@ public class JWebServer {
         return processors;
     }
 
-    public Map<URIObject, MethodHandler> getMethods() {
+    public SimpleMap<URIObject, MethodHandler> getMethods() {
         return methods;
     }
 
