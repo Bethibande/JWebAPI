@@ -15,8 +15,7 @@ public class ServerTest {
         server.bind(new InetSocketAddress("0.0.0.0", 5544), 100);
 
         JWebServer jWebServer = new JWebServer()
-                .withLogLevel(Level.FINE)
-                //.withLogLevel(Level.ALL) /* Uncomment this line to see full debug info */
+                .withLogLevel(Level.ALL)
                 .withBindAddress(5544)
                 .withMethodInvocationHandler(new SecuredAnnotationProcessor())
                 .autoLoad(ServerTest.class)

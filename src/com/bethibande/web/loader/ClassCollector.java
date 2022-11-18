@@ -1,5 +1,7 @@
 package com.bethibande.web.loader;
 
+import com.bethibande.web.annotations.AutoLoad;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -17,6 +19,27 @@ public class ClassCollector {
     private Function<String, Boolean> filter;
 
     private final Collection<Class<?>> classes = new ArrayList<>();
+
+
+    public static class AutoLoadFilter implements Function<String, Boolean> {
+
+        private final String value;
+
+        public AutoLoadFilter(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public Boolean apply(String s) {
+            try {
+                Class<?> clazz = Class.forName(s);
+                return clazz.isAnnotationPresent(AutoLoad.class) && clazz.getAnnotation(AutoLoad.class).value().equals(value);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+    }
 
     public static class AnnotationFilter implements Function<String, Boolean> {
 
@@ -79,6 +102,13 @@ public class ClassCollector {
 
     public Collection<Class<?>> collect(Class<?> clazz, Class<? extends Annotation> annotation) {
         return collect(clazz, new AnnotationFilter(annotation));
+    }
+
+    /**
+     * Collects all classes annotated with @AutoLoad(value)
+     */
+    public Collection<Class<?>> collect(Class<?> clazz, String value) {
+        return collect(clazz, new AutoLoadFilter(value));
     }
 
     public synchronized Collection<Class<?>> collect(Class<?> clazz, Function<String, Boolean> filter) {
