@@ -26,6 +26,7 @@ import com.bethibande.web.sessions.Session;
 import com.bethibande.web.types.CacheType;
 import com.bethibande.web.types.ServerCacheConfig;
 import com.bethibande.web.types.ServerCacheSupplier;
+import com.bethibande.web.types.URIObject;
 import com.bethibande.web.types.impl.DefaultCacheSupplierImpl;
 import com.bethibande.web.util.ReflectUtils;
 import com.google.gson.Gson;
@@ -39,6 +40,7 @@ import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -79,8 +81,8 @@ public class JWebServer {
     private Cache<String, CachedRequest> globalRequestCache;
 
     private List<ParameterProcessor> processors = new ArrayList<>();
-    //private ArrayMap<URI, MethodHandler> methods = new ArrayMap<URI, MethodHandler>(URI.class, URI[]::new, MethodHandler.class, MethodHandler[]::new);
-    private HashMap<URI, MethodHandler> methods = new HashMap<>();
+    //private ArrayMap<URIObject, MethodHandler> methods = new ArrayMap<>(URIObject.class, URIObject[]::new, MethodHandler.class, MethodHandler[]::new);
+    private HashMap<URIObject, MethodHandler> methods = new HashMap<>();
     private HashMap<Class<?>, OutputHandler<?>> outputHandlers = new HashMap<>();
     private HashMap<Class<?>, Class<? extends OutputWriter>> writers = new HashMap<>();
     private List<MethodInvocationHandler> methodInvocationHandlers = new ArrayList<>();
@@ -90,6 +92,62 @@ public class JWebServer {
 
     public JWebServer() {
         initValues();
+    }
+
+    /**
+     * Internal method used to initialize default values, caches, processors, handlers, suppliers and more
+     */
+    private void initValues() {
+        executor = new ScheduledThreadPoolExecutor(10);
+        logger = LoggerFactory.createLogger(executor);
+        logger.setLevel(Level.OFF);
+
+        bindAddress = new InetSocketAddress("0.0.0.0", 80);
+
+        cacheConfig = new ServerCacheConfig(
+                new CacheConfig()
+                        .withLifetimeType(CacheLifetimeType.ON_ACCESS)
+                        .withMaxItems(100)
+                        .withMaxLifetime(TimeUnit.MINUTES.toMillis(10))
+                        .withUpdateTimeout(TimeUnit.MINUTES.toMillis(1)),
+                new CacheConfig()
+                        .withLifetimeType(CacheLifetimeType.ON_CREATION)
+                        .withMaxLifetime(10000L)
+                        .withMaxItems(100)
+                        .withUpdateTimeout(TimeUnit.SECONDS.toMillis(2)),
+                new CacheConfig()
+                        .withLifetimeType(CacheLifetimeType.ON_CREATION)
+                        .withMaxLifetime(10000L)
+                        .withMaxItems(10)
+                        .withUpdateTimeout(TimeUnit.SECONDS.toMillis(1))
+        );
+
+        setCacheSupplier(new DefaultCacheSupplierImpl(Cache::new, Cache::new));
+
+        registerMethodInvocationHandler(new URIAnnotationProcessor());
+        registerMethodInvocationHandler(new CachedRequestHandler());
+        registerMethodInvocationHandler(new BeanHandler());
+
+        registerProcessor(new PathAnnotationProcessor());
+        registerProcessor(new SessionParameterProcessor());
+        registerProcessor(new ServerContextParameterProcessor());
+        registerProcessor(new HeaderValueAnnotationProcessor());
+        registerProcessor(new RemoteAddressAnnotationProcessor());
+        registerProcessor(new InputStreamParameterProcessor());
+        registerProcessor(new QueryFieldAnnotationProcessor());
+        registerProcessor(new PostDataAnnotationProcessor());
+        registerProcessor(new JsonFieldAnnotationProcessor());
+        registerProcessor(new BeanParameterProcessor());
+
+        registerOutputHandler(Object.class, new ObjectOutputHandler());
+        registerOutputHandler(RequestResponse.class, new RequestResponseOutputHandler());
+
+        registerWriter(byte[].class, ByteArrayWriter.class);
+        registerWriter(InputStreamWrapper.class, StreamWriter.class);
+
+        setContextFactory(ServerContext::new);
+
+        logger.setLevel(Level.INFO);
     }
 
     /**
@@ -155,62 +213,6 @@ public class JWebServer {
      */
     public void setLogStyle(LoggerFactory.LogStyle style) {
         LoggerFactory.setLogStyle(style, this.logger);
-    }
-
-    /**
-     * Internal method used to initialize default values, caches, processors, handlers, suppliers and more
-     */
-    private void initValues() {
-        executor = new ScheduledThreadPoolExecutor(10);
-        logger = LoggerFactory.createLogger(executor);
-        logger.setLevel(Level.OFF);
-
-        bindAddress = new InetSocketAddress("0.0.0.0", 80);
-
-        cacheConfig = new ServerCacheConfig(
-                new CacheConfig()
-                        .withLifetimeType(CacheLifetimeType.ON_ACCESS)
-                        .withMaxItems(100)
-                        .withMaxLifetime(TimeUnit.MINUTES.toMillis(10))
-                        .withUpdateTimeout(TimeUnit.MINUTES.toMillis(1)),
-                new CacheConfig()
-                        .withLifetimeType(CacheLifetimeType.ON_CREATION)
-                        .withMaxLifetime(10000L)
-                        .withMaxItems(100)
-                        .withUpdateTimeout(TimeUnit.SECONDS.toMillis(2)),
-                new CacheConfig()
-                        .withLifetimeType(CacheLifetimeType.ON_CREATION)
-                        .withMaxLifetime(10000L)
-                        .withMaxItems(10)
-                        .withUpdateTimeout(TimeUnit.SECONDS.toMillis(1))
-        );
-
-        setCacheSupplier(new DefaultCacheSupplierImpl(Cache::new, Cache::new));
-
-        registerMethodInvocationHandler(new URIAnnotationProcessor());
-        registerMethodInvocationHandler(new CachedRequestHandler());
-        registerMethodInvocationHandler(new BeanHandler());
-
-        registerProcessor(new PathAnnotationProcessor());
-        registerProcessor(new SessionParameterProcessor());
-        registerProcessor(new ServerContextParameterProcessor());
-        registerProcessor(new HeaderValueAnnotationProcessor());
-        registerProcessor(new RemoteAddressAnnotationProcessor());
-        registerProcessor(new InputStreamParameterProcessor());
-        registerProcessor(new QueryFieldAnnotationProcessor());
-        registerProcessor(new PostDataAnnotationProcessor());
-        registerProcessor(new JsonFieldAnnotationProcessor());
-        registerProcessor(new BeanParameterProcessor());
-
-        registerOutputHandler(Object.class, new ObjectOutputHandler());
-        registerOutputHandler(RequestResponse.class, new RequestResponseOutputHandler());
-
-        registerWriter(byte[].class, ByteArrayWriter.class);
-        registerWriter(InputStreamWrapper.class, StreamWriter.class);
-
-        setContextFactory(ServerContext::new);
-
-        logger.setLevel(Level.INFO);
     }
 
     /**
@@ -584,9 +586,9 @@ public class JWebServer {
         logger.finest(String.format("Register Method > %s:%s %s %s", method.getDeclaringClass().getName(), method.getName(), uri.value(), Arrays.toString(uri.methods())));
 
         if(method.getModifiers() == Modifier.STATIC) {
-            this.methods.put(uri, new StaticMethodHandler(method));
+            this.methods.put(URIObject.of(uri), new StaticMethodHandler(method));
         } else {
-            this.methods.put(uri, new InstanceMethodHandler(method));
+            this.methods.put(URIObject.of(uri), new InstanceMethodHandler(method));
         }
     }
 
@@ -615,7 +617,7 @@ public class JWebServer {
         return processors;
     }
 
-    public Map<URI, MethodHandler> getMethods() {
+    public Map<URIObject, MethodHandler> getMethods() {
         return methods;
     }
 

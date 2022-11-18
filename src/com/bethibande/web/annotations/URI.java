@@ -1,6 +1,7 @@
 package com.bethibande.web.annotations;
 
 import com.bethibande.web.types.RequestMethod;
+import com.bethibande.web.types.URIFilter;
 
 import java.lang.annotation.*;
 
@@ -16,15 +17,21 @@ public @interface URI {
         /**
          * This will match uris using regex, using String.matches(String regex);
          */
-        REGEX,
+        REGEX(((annotated, path) -> path.matches(annotated))),
         /**
          * This will match uris using String.equalsIgnoreCase(String);
          */
-        STRICT,
+        STRICT(((annotated, path) -> path.equals(annotated))),
         /**
          * This will match uris using String.startsWith(String);
          */
-        STRING;
+        STRING(((annotated, path) -> path.startsWith(annotated)));
+
+        public final URIFilter filter;
+
+        URIType(URIFilter filter) {
+            this.filter = filter;
+        }
     }
 
     String value();
