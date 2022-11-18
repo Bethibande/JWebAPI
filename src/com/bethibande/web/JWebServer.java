@@ -148,6 +148,44 @@ public class JWebServer {
     }
 
     /**
+     * Destructor, stops the server using {@link #stop()}
+     */
+    @Override
+    protected void finalize() throws Throwable {
+        if(!isAlive()) return;
+
+        stop();
+    }
+
+    /**
+     * Set the executor used by the server.
+     * @see #setExecutor(ScheduledThreadPoolExecutor) 
+     * @see #getExecutor() 
+     */
+    public JWebServer withExecutor(ScheduledThreadPoolExecutor executor) {
+        setExecutor(executor);
+        return this;
+    }
+
+    /**
+     * Set the executor used by the server.
+     * @see #withExecutor(ScheduledThreadPoolExecutor) 
+     * @see #getExecutor()
+     */
+    public void setExecutor(ScheduledThreadPoolExecutor executor) {
+        this.executor = executor;
+    }
+
+    /**
+     * Get the executor used by the server.
+     * @see #withExecutor(ScheduledThreadPoolExecutor) 
+     * @see #setExecutor(ScheduledThreadPoolExecutor)
+     */
+    public ScheduledThreadPoolExecutor getExecutor() {
+        return this.executor;
+    }
+    
+    /**
      * Set the logger instance used by this server
      * @see #setLogger(Logger)
      */
@@ -210,16 +248,6 @@ public class JWebServer {
      */
     public void setLogStyle(LoggerFactory.LogStyle style) {
         LoggerFactory.setLogStyle(style, this.logger);
-    }
-
-    /**
-     * Destructor, stops the server using {@link #stop()}
-     */
-    @Override
-    protected void finalize() throws Throwable {
-        if(!isAlive()) return;
-
-        stop();
     }
 
     /**
