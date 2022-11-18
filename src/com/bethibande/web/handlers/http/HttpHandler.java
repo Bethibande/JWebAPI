@@ -3,6 +3,7 @@ package com.bethibande.web.handlers.http;
 import com.bethibande.web.JWebServer;
 import com.bethibande.web.context.LocalServerContext;
 import com.bethibande.web.timings.TimingGenerator;
+import com.bethibande.web.types.URIObject;
 import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.annotations.URI;
 import com.bethibande.web.handlers.MethodHandler;
@@ -55,8 +56,8 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
 
             timingGenerator.keyframe(); // load session and context keyframe
 
-            for(URI uri : owner.getMethods().keySet()) {
-                if(!matches(uri, request)) continue;
+            for(URIObject uri : owner.getMethods()) {
+                if(!uri.isApplicable(request.getUri().getPath())) continue;
                 timingGenerator.keyframe(); // find uri keyframe
 
                 MethodHandler handler = owner.getMethods().get(uri);
