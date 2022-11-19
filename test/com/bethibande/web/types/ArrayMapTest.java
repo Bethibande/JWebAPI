@@ -63,7 +63,7 @@ public class ArrayMapTest {
         ArrayMap<String, String> map3 = new ArrayMap<>(new String[]{"key"}, new String[]{"value"});
         assertEquals(1, map3.size());
 
-        ArrayMap<String, String> map4 = new ArrayMap<>(String[]::new, String[]::new);
+        ArrayMap<String, String> map4 = new ArrayMap<>(String.class, String[]::new, String.class, String[]::new);
         map4.put("a", "b");
         assertEquals(1, map4.size());
         assertEquals("b", map4.get("a"));

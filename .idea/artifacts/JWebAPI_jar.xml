@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="JWebAPI:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/JWebAPI_jar</output-path>
+    <root id="archive" name="JWebAPI.jar">
+      <element id="module-output" name="JWebAPI" />
+    </root>
+  </artifact>
+</component>
