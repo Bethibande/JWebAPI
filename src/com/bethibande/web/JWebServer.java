@@ -278,6 +278,7 @@ public class JWebServer {
      *             A location can be anything, a jar file, a directory or more.
      *             A location is being loaded like this -> class.getProtectionDomain().getCodeSource().getLocation()
      */
+    @SuppressWarnings({"unused","unchecked"})
     public JWebServer autoLoad(Class<?> root, String module) {
         ClassCollector collector = new ClassCollector();
         Collection<Class<?>> classes = collector.collect(root, module);
@@ -305,6 +306,7 @@ public class JWebServer {
      *             A location can be anything, a jar file, a directory or more.
      *             A location is being loaded like this -> class.getProtectionDomain().getCodeSource().getLocation()
      */
+    @SuppressWarnings("unchecked")
     public JWebServer autoLoad(Class<?> root) {
         ClassCollector collector = new ClassCollector();
         Collection<Class<?>> classes = collector.collect(root, AutoLoad.class);
