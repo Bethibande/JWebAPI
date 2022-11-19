@@ -1,5 +1,6 @@
 package com.bethibande.web.examples.permission;
 
+import com.bethibande.web.annotations.AutoLoad;
 import com.bethibande.web.annotations.Path;
 import com.bethibande.web.annotations.QueryField;
 import com.bethibande.web.annotations.URI;
@@ -10,6 +11,7 @@ import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
 
 @SuppressWarnings("unused")
+@AutoLoad("secured")
 public class SecuredHandler {
 
     @URI(value = "/set/name/[a-zA-Z0-9\\s]{3,36}", type = URI.URIType.REGEX)

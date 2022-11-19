@@ -12,6 +12,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("unused")
+@AutoLoad
 public class TestHandler {
 
     @URI("/count")

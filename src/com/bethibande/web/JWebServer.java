@@ -1,5 +1,6 @@
 package com.bethibande.web;
 
+import com.bethibande.web.annotations.AutoLoad;
 import com.bethibande.web.annotations.URI;
 import com.bethibande.web.cache.Cache;
 import com.bethibande.web.cache.CacheConfig;
@@ -17,6 +18,7 @@ import com.bethibande.web.handlers.out.RequestResponseOutputHandler;
 import com.bethibande.web.io.ByteArrayWriter;
 import com.bethibande.web.io.OutputWriter;
 import com.bethibande.web.io.StreamWriter;
+import com.bethibande.web.loader.ClassCollector;
 import com.bethibande.web.logging.LoggerFactory;
 import com.bethibande.web.processors.*;
 import com.bethibande.web.processors.impl.*;
@@ -265,6 +267,61 @@ public class JWebServer {
      */
     public void setLogStyle(LoggerFactory.LogStyle style) {
         LoggerFactory.setLogStyle(style, this.logger);
+    }
+
+    /**
+     * Automatically loads and registers all classes annotated with the {@link com.bethibande.web.annotations.AutoLoad} annotation.
+     * This only loads classes where the @AutoLoad annotations value is equals the specified module parameter.
+     * Works for handlers, parameter processors and method invocation handlers.
+     * @param module The value supplied to the @AutoLoad annotation, the annotations value has to be equals to this parameter for the class to be loaded
+     * @param root Can be any class that is being loaded from the same location as the classes you want to load.
+     *             A location can be anything, a jar file, a directory or more.
+     *             A location is being loaded like this -> class.getProtectionDomain().getCodeSource().getLocation()
+     */
+    public JWebServer autoLoad(Class<?> root, String module) {
+        ClassCollector collector = new ClassCollector();
+        Collection<Class<?>> classes = collector.collect(root, module);
+
+        for(Class<?> clazz : classes) {
+            if(ParameterProcessor.class.isAssignableFrom(clazz)) {
+                registerProcessor(ReflectUtils.autoWireNewInstance((Class<? extends ParameterProcessor>) clazz, new ServerContext(this, null, null)));
+                continue;
+            }
+            if(MethodInvocationHandler.class.isAssignableFrom(clazz)) {
+                registerMethodInvocationHandler(ReflectUtils.autoWireNewInstance((Class<? extends MethodInvocationHandler>) clazz, new ServerContext(this, null, null)));
+                continue;
+            }
+
+            registerHandlerClass(clazz);
+        }
+        return this;
+    }
+
+    /**
+     * Automatically loads and registers all classes annotated with the {@link com.bethibande.web.annotations.AutoLoad} annotation.
+     * This loads all classes regardless of the value specified in the @AutoLoad annotation.
+     * Works for handlers, parameter processors and method invocation handlers.
+     * @param root Can be any class that is being loaded from the same location as the classes you want to load.
+     *             A location can be anything, a jar file, a directory or more.
+     *             A location is being loaded like this -> class.getProtectionDomain().getCodeSource().getLocation()
+     */
+    public JWebServer autoLoad(Class<?> root) {
+        ClassCollector collector = new ClassCollector();
+        Collection<Class<?>> classes = collector.collect(root, AutoLoad.class);
+
+        for(Class<?> clazz : classes) {
+            if(ParameterProcessor.class.isAssignableFrom(clazz)) {
+                registerProcessor(ReflectUtils.autoWireNewInstance((Class<? extends ParameterProcessor>) clazz, new ServerContext(this, null, null)));
+                continue;
+            }
+            if(MethodInvocationHandler.class.isAssignableFrom(clazz)) {
+                registerMethodInvocationHandler(ReflectUtils.autoWireNewInstance((Class<? extends MethodInvocationHandler>) clazz, new ServerContext(this, null, null)));
+                continue;
+            }
+
+            registerHandlerClass(clazz);
+        }
+        return this;
     }
 
     /**
