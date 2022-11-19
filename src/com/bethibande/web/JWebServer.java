@@ -158,6 +158,21 @@ public class JWebServer {
     }
 
     /**
+     * Remove a registered handler
+     * @param uri same uri as the one specified whilst registering handler, usually using the @URI annotation
+     */
+    public void removeHandler(String uri){
+        for(URIObject obj : methods) {
+            if(obj.uri().equals(uri)) {
+                MethodHandler handler = methods.get(obj);
+                logger.finest(String.format("Remove Method > %s:%s %s %s", handler.getMethod().getDeclaringClass().getName(), handler.getMethod().getName(), obj.uri(), Arrays.toString(obj.methods())));
+                methods.remove(obj);
+                break;
+            }
+        }
+    }
+
+    /**
      * Set the executor used by the server.
      * @see #setExecutor(ScheduledThreadPoolExecutor) 
      * @see #getExecutor() 
