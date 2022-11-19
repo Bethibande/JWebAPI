@@ -20,6 +20,7 @@ public class CachedRequestHandler extends AnnotatedInvocationHandler<CacheReques
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void beforeInvocation(Method method, CacheRequest annotation, WebRequest request, JWebServer server) {
         String path = request.getUri().getPath();
         if(annotation.global()) {
@@ -48,6 +49,7 @@ public class CachedRequestHandler extends AnnotatedInvocationHandler<CacheReques
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void afterInvocation(Method method, CacheRequest annotation, WebRequest request, JWebServer server) {
         String path = request.getUri().getPath();
         CachedRequest cachedRequest = new CachedRequest(path, request.getResponse());

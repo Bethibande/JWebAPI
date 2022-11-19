@@ -21,6 +21,7 @@ public class ArrayUtils {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> T[] createArray(Class<T> type, int length) {
         return (T[]) Array.newInstance(type, length);
     }

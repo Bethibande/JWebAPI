@@ -37,6 +37,7 @@ public class BeanManager {
         return bean;
     }
 
+    @SuppressWarnings("unused")
     public void activate(Bean bean) {
         activeBeans.put(bean.getClass(), bean);
     }
@@ -52,7 +53,7 @@ public class BeanManager {
 
             method.setAccessible(true);
             try {
-                method.invoke(obj, null);
+                method.invoke(obj);
             } catch (IllegalAccessException | InvocationTargetException e) {
                 throw new RuntimeException(e);
             }
@@ -83,6 +84,7 @@ public class BeanManager {
         ));
     }
 
+    @SuppressWarnings("unused")
     public void deleteBean(Class<? extends Bean> type, ServerContext con) {
         Object bean = getBean(type, con);
         invokeAnnotatedMethod(bean, PostDestroy.class);
@@ -98,7 +100,7 @@ public class BeanManager {
     private <T extends Bean> T getBeanFromSnapshot(Class<T> type, ServerContext context) {
         T bean = createBean(type, context);
         BeanSnapshot snapshot = beans.get(type);
-        HashMap<Field, Object> state = snapshot.getState();
+        HashMap<Field, Object> state = snapshot.state();
 
         for(Field field : state.keySet()) {
             field.setAccessible(true);
@@ -112,10 +114,12 @@ public class BeanManager {
         return bean;
     }
 
+    @SuppressWarnings("unused")
     public BeanFactory getFactory() {
         return factory;
     }
 
+    @SuppressWarnings("unused")
     public void setFactory(BeanFactory factory) {
         this.factory = factory;
     }

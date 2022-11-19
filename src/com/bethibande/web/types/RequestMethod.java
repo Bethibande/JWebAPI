@@ -1,5 +1,6 @@
 package com.bethibande.web.types;
 
+@SuppressWarnings("unused")
 public enum RequestMethod {
 
     POST,
@@ -16,6 +17,6 @@ public enum RequestMethod {
     PROPFIND,
     VIEW,
     OPTIONS,
-    DELETE;
+    DELETE
 
 }

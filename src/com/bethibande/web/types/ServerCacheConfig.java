@@ -2,6 +2,7 @@ package com.bethibande.web.types;
 
 import com.bethibande.web.cache.CacheConfig;
 
+@SuppressWarnings("unused")
 public class ServerCacheConfig {
 
     private CacheConfig sessionCacheConfig;

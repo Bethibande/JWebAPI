@@ -11,9 +11,10 @@ import java.lang.reflect.Parameter;
 
 public class ReflectUtils {
 
+    @SuppressWarnings("unchecked")
     public static <T> T autoWireNewInstance(Class<T> type, ServerContext context) {
         JWebServer server = context.server();
-        WebRequest request = context.request().clone();
+        WebRequest request = context.request().createClone();
         Constructor<T> constructor = (Constructor<T>) type.getConstructors()[0];
         Parameter[] parameters = constructor.getParameters();
 
@@ -33,10 +34,11 @@ public class ReflectUtils {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> T createInstance(Class<T> type) {
         try {
-            return type.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
+            return (T) type.getDeclaredConstructors()[0].newInstance();
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
     }

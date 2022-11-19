@@ -9,6 +9,7 @@ import com.bethibande.web.examples.annotations.SecuredEntry;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
 
+@SuppressWarnings("unused")
 public class SecuredHandler {
 
     @URI(value = "/set/name/[a-zA-Z0-9\\s]{3,36}", type = URI.URIType.REGEX)

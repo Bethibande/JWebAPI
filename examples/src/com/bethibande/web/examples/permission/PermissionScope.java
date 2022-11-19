@@ -2,6 +2,7 @@ package com.bethibande.web.examples.permission;
 
 import java.util.HashMap;
 
+@SuppressWarnings("unused")
 public class PermissionScope {
 
     public static final byte ACCESS_READ = 1;

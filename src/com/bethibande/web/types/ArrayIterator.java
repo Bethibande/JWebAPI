@@ -4,6 +4,7 @@ import java.util.Iterator;
 
 public class ArrayIterator<T> implements Iterator<T> {
 
+    @SafeVarargs
     public static <T> ArrayIterator<T> of(T... array) {
         return new ArrayIterator<>(array);
     }

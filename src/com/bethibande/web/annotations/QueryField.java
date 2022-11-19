@@ -15,8 +15,8 @@ public @interface QueryField {
 
     /**
      * Query key to get <br>
-     * in case of query = test=abcd&test2=ef <br>
-     * a value of "test2" will return ef
+     * in case of query = test=abc&test2=def <br>
+     * a value of "test2" will return def
      */
     String value();
 

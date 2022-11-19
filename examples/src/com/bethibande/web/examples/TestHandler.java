@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
+@SuppressWarnings("unused")
 public class TestHandler {
 
     @URI("/count")
@@ -51,7 +52,7 @@ public class TestHandler {
      */
     @URI(value = "/postMessage", methods = RequestMethod.POST)
     public Object postMessage(@PostData Message message) {
-        return new Message(99, message.getMessage());
+        return new Message(99, message.message());
     }
 
     /**

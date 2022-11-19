@@ -2,6 +2,7 @@ package com.bethibande.web.timings;
 
 import java.util.concurrent.TimeUnit;
 
+@SuppressWarnings("unused")
 public class TimingGenerator {
 
     private int index = 0;

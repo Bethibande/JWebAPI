@@ -7,15 +7,14 @@ import com.sun.net.httpserver.HttpExchange;
 
 import java.lang.reflect.Method;
 import java.net.URI;
-import java.util.HashMap;
 
 public class WebRequest {
 
-    private URI uri;
-    private Headers requestHeaders;
+    private final URI uri;
+    private final Headers requestHeaders;
 
-    private JWebServer server;
-    private HttpExchange exchange;
+    private final JWebServer server;
+    private final HttpExchange exchange;
 
     private RequestResponse response;
 
@@ -104,8 +103,7 @@ public class WebRequest {
         return methodInvocationParameters;
     }
 
-    @Override
-    public WebRequest clone() {
+    public WebRequest createClone() {
         return new WebRequest(server, exchange);
     }
 }

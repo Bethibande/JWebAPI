@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Range;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+@SuppressWarnings("unused")
 public class Cache<K, V> {
 
     private final HashMap<K, CacheItem<K, V>> cache = new HashMap<>();

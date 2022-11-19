@@ -4,9 +4,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.LinkedList;
-import java.util.Queue;
 import java.util.TimeZone;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Function;
 import java.util.logging.Handler;
@@ -42,11 +40,11 @@ public class LoggerFactory {
         SIMPLE
     }
 
-    private record LogMessage(LogRecord record, DateTimeFormatter formatter, Thread thread, String format, String padding, Function<Level, String> styleProvider) { };
+    private record LogMessage(LogRecord record, DateTimeFormatter formatter, Thread thread, String format, String padding, Function<Level, String> styleProvider) { }
 
     private static class LogPrinter {
 
-        private volatile LinkedList<LogMessage> messageQueue = new LinkedList<>();
+        private final LinkedList<LogMessage> messageQueue = new LinkedList<>();
 
         public void submit(LogRecord record, DateTimeFormatter formatter, String format, String padding, Function<Level, String> styleProvider) {
             messageQueue.offer(new LogMessage(record, formatter, Thread.currentThread(), format, padding, styleProvider));
@@ -81,7 +79,7 @@ public class LoggerFactory {
         private Function<Level, String> styleProvider;
         private String padding = "%30s";
 
-        private LogPrinter printer = new LogPrinter();
+        private final LogPrinter printer = new LogPrinter();
 
         public StandardHandler(ThreadPoolExecutor executor) {
             this.executor = executor;
@@ -150,6 +148,7 @@ public class LoggerFactory {
             return null;
         }
 
+        @SuppressWarnings("unused")
         public void setPadding(int length) {
             this.padding = "%" + length + "s";
         }
@@ -157,7 +156,7 @@ public class LoggerFactory {
         @Override
         public void publish(LogRecord record) {
             printer.submit(record, FORMATTER, STRING_FORMAT, padding, styleProvider);
-            executor.execute(() -> printer.print());
+            executor.execute(printer::print);
         }
 
         @Override

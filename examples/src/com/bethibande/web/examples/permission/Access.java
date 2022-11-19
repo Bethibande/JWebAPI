@@ -1,5 +1,6 @@
 package com.bethibande.web.examples.permission;
 
+@SuppressWarnings("unused")
 public enum Access {
 
     READ((byte)1),

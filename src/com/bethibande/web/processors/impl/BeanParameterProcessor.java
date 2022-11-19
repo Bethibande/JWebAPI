@@ -18,6 +18,7 @@ public class BeanParameterProcessor extends FilteredParameterProcessor {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void accept(ServerContext context, int parameterIndex, Executable executable, Parameter parameter) {
         if(Bean.class.isAssignableFrom(parameter.getType())) {
             Session session = context.session();

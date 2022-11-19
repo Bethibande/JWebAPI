@@ -37,7 +37,6 @@ import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -58,10 +57,6 @@ public class JWebServer {
     private HttpServer server;
 
     private Logger logger;
-    /**
-     * @see #isDebug()
-     */
-    private boolean debug = false;
 
     /**
      * Buffer size used by writers
@@ -77,12 +72,12 @@ public class JWebServer {
     private Cache<UUID, Session> sessionCache;
     private Cache<String, CachedRequest> globalRequestCache;
 
-    private List<ParameterProcessor> processors = new ArrayList<>();
+    private final List<ParameterProcessor> processors = new ArrayList<>();
     //private ArrayMap<URIObject, MethodHandler> methods = new ArrayMap<>(URIObject.class, URIObject[]::new, MethodHandler.class, MethodHandler[]::new);
-    private SimpleMap<URIObject, MethodHandler> methods = new SimpleMap<>(URIObject.class, MethodHandler.class);
-    private HashMap<Class<?>, OutputHandler<?>> outputHandlers = new HashMap<>();
-    private HashMap<Class<?>, Class<? extends OutputWriter>> writers = new HashMap<>();
-    private List<MethodInvocationHandler> methodInvocationHandlers = new ArrayList<>();
+    private final SimpleMap<URIObject, MethodHandler> methods = new SimpleMap<>(URIObject.class, MethodHandler.class);
+    private final HashMap<Class<?>, OutputHandler<?>> outputHandlers = new HashMap<>();
+    private final HashMap<Class<?>, Class<? extends OutputWriter>> writers = new HashMap<>();
+    private final List<MethodInvocationHandler> methodInvocationHandlers = new ArrayList<>();
 
     private ServerCacheSupplier cacheSupplier;
     private ContextFactory contextFactory;
@@ -151,7 +146,8 @@ public class JWebServer {
      * Destructor, stops the server using {@link #stop()}
      */
     @Override
-    protected void finalize() throws Throwable {
+    @SuppressWarnings("deprecation")
+    protected void finalize() {
         if(!isAlive()) return;
 
         stop();
@@ -161,6 +157,7 @@ public class JWebServer {
      * Remove a registered handler
      * @param uri same uri as the one specified whilst registering handler, usually using the @URI annotation
      */
+    @SuppressWarnings("unused")
     public void removeHandler(String uri){
         for(URIObject obj : methods) {
             if(obj.uri().equals(uri)) {
@@ -177,6 +174,7 @@ public class JWebServer {
      * @see #setExecutor(ScheduledThreadPoolExecutor) 
      * @see #getExecutor() 
      */
+    @SuppressWarnings("unused")
     public JWebServer withExecutor(ScheduledThreadPoolExecutor executor) {
         setExecutor(executor);
         return this;
@@ -196,6 +194,7 @@ public class JWebServer {
      * @see #withExecutor(ScheduledThreadPoolExecutor) 
      * @see #setExecutor(ScheduledThreadPoolExecutor)
      */
+    @SuppressWarnings("unused")
     public ScheduledThreadPoolExecutor getExecutor() {
         return this.executor;
     }
@@ -204,6 +203,7 @@ public class JWebServer {
      * Set the logger instance used by this server
      * @see #setLogger(Logger)
      */
+    @SuppressWarnings("unused")
     public JWebServer withLogger(Logger logger) {
         setLogger(logger);
         return this;
@@ -237,6 +237,7 @@ public class JWebServer {
     /**
      * Get the loggers log level
      */
+    @SuppressWarnings("unused")
     public Level getLogLevel() {
         return this.logger.getLevel();
     }
@@ -253,6 +254,7 @@ public class JWebServer {
      * Sets the loggers style
      * @see #setLogStyle(LoggerFactory.LogStyle)
      */
+    @SuppressWarnings("unused")
     public JWebServer withLogStyle(LoggerFactory.LogStyle style) {
         setLogStyle(style);
         return this;
@@ -271,6 +273,7 @@ public class JWebServer {
      * @see com.bethibande.web.annotations.PostData
      * @see com.bethibande.web.annotations.JsonField
      */
+    @SuppressWarnings("unused")
     public void setGson(Gson gson) {
         this.gson = gson;
     }
@@ -288,6 +291,7 @@ public class JWebServer {
      * @return the current JWebServer instance, used for chaining methods.
      * @see #setCharset(Charset)
      */
+    @SuppressWarnings("unused")
     public JWebServer withCharset(Charset charset) {
         setCharset(charset);
         return this;
@@ -299,6 +303,7 @@ public class JWebServer {
      * @return the current JWebServer instance, used for chaining methods.
      * @see #setBufferSize(int) 
      */
+    @SuppressWarnings("unused")
     public JWebServer withBufferSize(int bufferSize) {
         setBufferSize(bufferSize);
         return this;
@@ -362,6 +367,7 @@ public class JWebServer {
      * @return the current JWebServer instance, used for chaining methods.
      * @see #setCacheSupplier(ServerCacheSupplier)
      */
+    @SuppressWarnings("unused")
     public JWebServer withCacheSupplier(ServerCacheSupplier supplier) {
         setCacheSupplier(supplier);
         return this;
@@ -380,6 +386,7 @@ public class JWebServer {
      * @return the current JWebServer instance, used for chaining methods.
      * @see #setCacheConfig(ServerCacheConfig)
      */
+    @SuppressWarnings("unused")
     public JWebServer withCacheConfig(ServerCacheConfig config) {
         setCacheConfig(config);
         return this;
@@ -391,31 +398,6 @@ public class JWebServer {
     public void setCacheConfig(ServerCacheConfig config) {
         logger.config("Update CacheConfig");
         this.cacheConfig = config;
-    }
-
-    /**
-     * @see #isDebug()
-     */
-    @Deprecated(forRemoval = true)
-    public JWebServer withDebug(boolean debug) {
-        setDebug(debug);
-        return this;
-    }
-
-    /**
-     * @see #isDebug()
-     */
-    @Deprecated(forRemoval = true)
-    public void setDebug(boolean debug) {
-        this.debug = debug;
-    }
-
-    /**
-     * If false, in case of an exception the stacktrace will be discarded and not be printed.
-     */
-    @Deprecated(forRemoval = true)
-    public boolean isDebug() {
-        return debug;
     }
 
     /**
@@ -456,6 +438,7 @@ public class JWebServer {
      * @see #getContextFactory()
      * @see #setContextFactory(ContextFactory)
      */
+    @SuppressWarnings("unused")
     public JWebServer withContextFactory(ContextFactory factory) {
         setContextFactory(factory);
         return this;
@@ -484,6 +467,7 @@ public class JWebServer {
      * Calls {@link #updateCache()} and returns session belonging to the ip address.<br>
      * Returns null if there is no session.
      */
+    @SuppressWarnings("unused")
     public Session getSession(InetAddress owner) {
         this.updateCache();
         for(UUID sessionId : sessionCache.getAllKeys()) {
@@ -546,6 +530,7 @@ public class JWebServer {
      * Register a new writer for a certain type.
      * @return the current JWebServer instance, used for chaining methods.
      */
+    @SuppressWarnings("unused")
     public JWebServer withWriter(Class<?> type, Class<? extends OutputWriter> writer) {
         registerWriter(type, writer);
         return this;
@@ -557,6 +542,7 @@ public class JWebServer {
         writers.put(type, writer);
     }
 
+    @SuppressWarnings("unused")
     public JWebServer withBindAddress(String address, int port) {
         setBindAddress(new InetSocketAddress(address, port));
         return this;
@@ -575,11 +561,13 @@ public class JWebServer {
         return this;
     }
 
+    @SuppressWarnings("unused")
     public JWebServer withProcessor(ParameterProcessor processor) {
         registerProcessor(processor);
         return this;
     }
 
+    @SuppressWarnings("unused")
     public <T> JWebServer withOutputHandler(Class<T> type, OutputHandler<T> handler) {
         registerOutputHandler(type, handler);
         return this;
@@ -590,10 +578,12 @@ public class JWebServer {
         outputHandlers.put(type, handler);
     }
 
+    @SuppressWarnings("unchecked")
     public <T> OutputHandler<T> getOutputHandler(Class<T> type) {
         return (OutputHandler<T>) outputHandlers.get(type);
     }
 
+    @SuppressWarnings("unused")
     public HashMap<Class<?>, OutputHandler<?>> getOutputHandlers() {
         return outputHandlers;
     }
@@ -603,11 +593,13 @@ public class JWebServer {
         processors.add(processor);
     }
 
+    @SuppressWarnings("unused")
     public JWebServer withMethod(Class<?> clazz, String methodName, Class<?>... methodSignature) {
         registerMethod(clazz, methodName, methodSignature);
         return this;
     }
 
+    @SuppressWarnings("unused")
     public JWebServer withMethod(Method method) {
         registerMethod(method);
         return this;
@@ -641,10 +633,12 @@ public class JWebServer {
         }
     }
 
+    @SuppressWarnings("unused")
     public InetSocketAddress getBindAddress() {
         return bindAddress;
     }
 
+    @SuppressWarnings("unused")
     public Cache<UUID, Session> getSessionCache() {
         return sessionCache;
     }
@@ -661,6 +655,7 @@ public class JWebServer {
         return methods;
     }
 
+    @SuppressWarnings("unused")
     public JWebServer withBindAddress(InetSocketAddress bindAddress) {
         setBindAddress(bindAddress);
         return this;

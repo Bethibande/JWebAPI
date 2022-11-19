@@ -7,8 +7,8 @@ import com.bethibande.web.examples.permission.PermissionScope;
 import com.bethibande.web.examples.permission.Permissions;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
-import com.sun.net.httpserver.HttpExchange;
 
+@SuppressWarnings("unused")
 public class SecuredContext extends ServerContext {
 
     public SecuredContext(JWebServer server, Session session, WebRequest request) {

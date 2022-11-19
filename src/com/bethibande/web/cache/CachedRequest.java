@@ -2,6 +2,7 @@ package com.bethibande.web.cache;
 
 import com.bethibande.web.response.RequestResponse;
 
+@SuppressWarnings("unused")
 public class CachedRequest {
 
     private final String uri;

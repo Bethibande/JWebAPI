@@ -2,10 +2,15 @@ package com.bethibande.web.types;
 
 import java.util.HashMap;
 
+@SuppressWarnings("unused")
 public class MetaData {
 
-    private HashMap<Object, Object> metadata = new HashMap<>();
+    private final HashMap<Object, Object> metadata = new HashMap<>();
 
+    /**
+     * Checks whether a key already exists or not
+     */
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean hasMeta(Object key) {
         return metadata.containsKey(key);
     }

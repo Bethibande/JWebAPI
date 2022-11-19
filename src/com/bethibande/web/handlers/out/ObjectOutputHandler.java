@@ -4,7 +4,6 @@ import com.bethibande.web.context.LocalServerContext;
 import com.bethibande.web.context.ServerContext;
 import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.response.RequestResponse;
-import com.google.gson.Gson;
 
 public class ObjectOutputHandler implements OutputHandler<Object> {
 

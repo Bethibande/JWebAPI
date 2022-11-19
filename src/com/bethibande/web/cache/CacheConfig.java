@@ -3,6 +3,7 @@ package com.bethibande.web.cache;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
+@SuppressWarnings("unused")
 public class CacheConfig {
 
     private CacheLifetimeType lifetimeType;

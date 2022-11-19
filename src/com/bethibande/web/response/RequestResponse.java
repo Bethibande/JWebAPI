@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class RequestResponse {
 
     public static RequestResponse redirect(String redirect) {

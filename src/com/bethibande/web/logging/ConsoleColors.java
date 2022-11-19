@@ -1,5 +1,6 @@
 package com.bethibande.web.logging;
 
+@SuppressWarnings("unused")
 public class ConsoleColors {
 
     public static final String BLACK = "\u001b[30m";

@@ -6,7 +6,6 @@ import com.bethibande.web.context.ServerContext;
 import com.bethibande.web.timings.TimingGenerator;
 import com.bethibande.web.types.URIObject;
 import com.bethibande.web.types.WebRequest;
-import com.bethibande.web.annotations.URI;
 import com.bethibande.web.handlers.MethodHandler;
 import com.bethibande.web.handlers.out.OutputHandler;
 import com.bethibande.web.io.OutputWriter;
@@ -30,15 +29,8 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
         this.owner = owner;
     }
 
-    private boolean matches(URI uri, WebRequest request) {
-        URI.URIType type = uri.type();
-        if(type.equals(URI.URIType.STRICT)) return request.getUri().getPath().equalsIgnoreCase(uri.value());
-        if(type.equals(URI.URIType.STRING)) return request.getUri().getPath().startsWith(uri.value());
-        if(type.equals(URI.URIType.REGEX)) return request.getUri().getPath().matches(uri.value());
-        return false;
-    }
-
     @Override
+    @SuppressWarnings("unchecked")
     public void handle(HttpExchange exchange) {
         TimingGenerator timingGenerator = new TimingGenerator();
         timingGenerator.start(7);

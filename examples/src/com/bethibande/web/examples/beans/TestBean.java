@@ -5,10 +5,11 @@ import com.bethibande.web.annotations.PostConstruct;
 import com.bethibande.web.annotations.PostDestroy;
 import com.bethibande.web.beans.Bean;
 
+@SuppressWarnings("unused")
 public class TestBean extends Bean {
 
     private int number;
-    private transient String path;
+    private final transient String path;
 
     public TestBean(@Path String path) {
         this.path = path;
