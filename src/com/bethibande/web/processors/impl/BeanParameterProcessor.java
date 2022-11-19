@@ -2,22 +2,24 @@ package com.bethibande.web.processors.impl;
 
 import com.bethibande.web.beans.Bean;
 import com.bethibande.web.beans.BeanManager;
-import com.bethibande.web.context.LocalServerContext;
 import com.bethibande.web.context.ServerContext;
-import com.bethibande.web.processors.ParameterProcessor;
+import com.bethibande.web.processors.FilteredParameterProcessor;
+import com.bethibande.web.processors.ParameterFilter;
 import com.bethibande.web.sessions.Session;
 import com.bethibande.web.types.MetaData;
-import com.bethibande.web.types.WebRequest;
 
 import java.lang.reflect.Executable;
 import java.lang.reflect.Parameter;
 
-public class BeanParameterProcessor implements ParameterProcessor {
+public class BeanParameterProcessor extends FilteredParameterProcessor {
+
+    public BeanParameterProcessor() {
+        super(ParameterFilter.requestFilter());
+    }
 
     @Override
-    public void process(WebRequest request, int parameterIndex, Executable method, Parameter parameter) {
+    public void accept(ServerContext context, int parameterIndex, Executable executable, Parameter parameter) {
         if(Bean.class.isAssignableFrom(parameter.getType())) {
-            ServerContext context = LocalServerContext.getContext();
             Session session = context.session();
             MetaData meta = session.getMeta();
 
@@ -28,7 +30,7 @@ public class BeanParameterProcessor implements ParameterProcessor {
             BeanManager beanManager = meta.getAsType("localBeanManager", BeanManager.class);
             Bean bean = beanManager.activeBean((Class<Bean>) parameter.getType(), context);
 
-            request.setParameter(parameterIndex, bean);
+            context.request().setParameter(parameterIndex, bean);
         }
     }
 }

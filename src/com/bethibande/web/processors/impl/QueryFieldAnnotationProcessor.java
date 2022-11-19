@@ -1,6 +1,7 @@
 package com.bethibande.web.processors.impl;
 
 import com.bethibande.web.annotations.QueryField;
+import com.bethibande.web.context.ServerContext;
 import com.bethibande.web.processors.AnnotationProcessor;
 import com.bethibande.web.types.WebRequest;
 
@@ -10,13 +11,14 @@ import java.lang.reflect.Parameter;
 public class QueryFieldAnnotationProcessor extends AnnotationProcessor<QueryField> {
 
     public QueryFieldAnnotationProcessor() {
-        super(QueryField.class);
+        super(QueryField.class, true);
     }
 
     @Override
-    public Object getValue(WebRequest request, QueryField annotation, Executable executable, Parameter parameter) {
-        Class<?> type = parameter.getType();
-        String key = annotation.value();
+    public Object accept(ServerContext context, QueryField annotation, Executable executable, Parameter parameter) {
+        final WebRequest request = context.request();
+        final Class<?> type = parameter.getType();
+        final String key = annotation.value();
 
         if(type == boolean.class || type == Boolean.class) {
             return request.getQuery().getAsBoolean(key);

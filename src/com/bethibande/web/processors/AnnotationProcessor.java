@@ -1,29 +1,25 @@
 package com.bethibande.web.processors;
 
-import com.bethibande.web.types.WebRequest;
+import com.bethibande.web.context.ServerContext;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Executable;
-import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 
-public abstract class AnnotationProcessor<T extends Annotation> implements ParameterProcessor {
+public abstract class AnnotationProcessor<T extends Annotation> extends FilteredParameterProcessor {
 
-    private final Class<T> type;
+    private final Class<T> annotation;
 
-    public AnnotationProcessor(Class<T> type) {
-        this.type = type;
+    public AnnotationProcessor(Class<T> annotation, boolean requiresRequest) {
+        super(requiresRequest ? ParameterFilter.annotationRequestFilter(annotation): ParameterFilter.requestFilter());
+
+        this.annotation = annotation;
     }
 
-    public abstract Object getValue(WebRequest request, T annotation, Executable executable, Parameter parameter);
+    public abstract Object accept(ServerContext context, T annotation, Executable executable, Parameter parameter);
 
     @Override
-    public void process(WebRequest request, int parameterIndex, Executable executable, Parameter parameter) {
-        if(!parameter.isAnnotationPresent(type)) return;
-
-        request.setParameter(
-                parameterIndex,
-                getValue(request, parameter.getAnnotation(type), executable, parameter)
-        );
+    public void accept(ServerContext context, int index, Executable executable, Parameter parameter) {
+        context.request().setParameter(index, accept(context, parameter.getAnnotation(annotation), executable, parameter));
     }
 }

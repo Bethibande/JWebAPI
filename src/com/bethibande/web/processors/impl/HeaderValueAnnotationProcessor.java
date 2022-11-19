@@ -1,8 +1,9 @@
 package com.bethibande.web.processors.impl;
 
+import com.bethibande.web.context.ServerContext;
+import com.bethibande.web.processors.AnnotationProcessor;
 import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.annotations.HeaderValue;
-import com.bethibande.web.processors.AnnotationProcessor;
 
 import java.lang.reflect.Executable;
 import java.lang.reflect.Parameter;
@@ -14,12 +15,13 @@ import java.util.List;
 public class HeaderValueAnnotationProcessor extends AnnotationProcessor<HeaderValue> {
 
     public HeaderValueAnnotationProcessor() {
-        super(HeaderValue.class);
+        super(HeaderValue.class, true);
     }
 
     @Override
-    public Object getValue(WebRequest request, HeaderValue annotation, Executable executable, Parameter parameter) {
-        Class<?> type = parameter.getType();
+    public Object accept(ServerContext context, HeaderValue annotation, Executable executable, Parameter parameter) {
+        final Class<?> type = parameter.getType();
+        final WebRequest request = context.request();
 
         if(Collection.class.isAssignableFrom(type)) {
             return request.getRequestHeaders().get(annotation.header());
