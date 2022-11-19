@@ -11,8 +11,8 @@ import com.sun.net.httpserver.HttpExchange;
 
 public class SecuredContext extends ServerContext {
 
-    public SecuredContext(JWebServer server, Session session, HttpExchange exchange, WebRequest request) {
-        super(server, session, exchange, request);
+    public SecuredContext(JWebServer server, Session session, WebRequest request) {
+        super(server, session, request);
     }
 
     public void loadPermissions(PermissionScope scope) {

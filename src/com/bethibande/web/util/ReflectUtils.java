@@ -21,7 +21,7 @@ public class ReflectUtils {
 
         for(int i = 0; i < parameters.length; i++) {
             for(ParameterProcessor processor : server.getProcessors()) {
-                processor.process(request, i, constructor, parameters[i]);
+                processor.process(context, i, constructor, parameters[i]);
             }
         }
 

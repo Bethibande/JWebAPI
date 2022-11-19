@@ -11,7 +11,7 @@ public class Main {
     public static void main(String[] args) {
         JWebServer server = new JWebServer()
                 .withLogLevel(Level.FINE)
-                //.withLogLevel(Level.ALL) /* Uncomment this line to see full debug info */
+                .withLogLevel(Level.ALL) /* Uncomment this line to see full debug info */
                 .withBindAddress(5544)
                 .withMethodInvocationHandler(new SecuredAnnotationProcessor())
                 .withHandler(TestHandler.class)

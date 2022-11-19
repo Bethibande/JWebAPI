@@ -1,6 +1,8 @@
 package com.bethibande.web.handlers;
 
 import com.bethibande.web.JWebServer;
+import com.bethibande.web.context.LocalServerContext;
+import com.bethibande.web.context.ServerContext;
 import com.bethibande.web.processors.ParameterProcessor;
 import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.response.RequestResponse;
@@ -22,21 +24,21 @@ public abstract class MethodHandler {
         return method;
     }
 
-    protected void prepare(WebRequest request) {
-        JWebServer server = request.getServer();
-        Parameter[] parameters = method.getParameters();
+    protected void prepare(ServerContext context) {
+        final JWebServer server = context.server();
+        final Parameter[] parameters = method.getParameters();
 
         for(int i = 0; i < parameters.length; i++) {
             Parameter parameter = parameters[i];
 
             for(ParameterProcessor processor : server.getProcessors()) {
-                processor.process(request, i, method, parameter);
+                processor.process(context, i, method, parameter);
             }
         }
 
-        request.setFinished(false);
+        context.request().setFinished(false);
     }
 
-    public abstract RequestResponse invoke(WebRequest request);
+    public abstract RequestResponse invoke(ServerContext context);
 
 }

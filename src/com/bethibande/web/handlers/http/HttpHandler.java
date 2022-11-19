@@ -2,6 +2,7 @@ package com.bethibande.web.handlers.http;
 
 import com.bethibande.web.JWebServer;
 import com.bethibande.web.context.LocalServerContext;
+import com.bethibande.web.context.ServerContext;
 import com.bethibande.web.timings.TimingGenerator;
 import com.bethibande.web.types.URIObject;
 import com.bethibande.web.types.WebRequest;
@@ -47,12 +48,13 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
             Session session = owner.getSession(exchange.getRemoteAddress().getAddress());
             if(session == null) session = owner.generateSession(exchange.getRemoteAddress().getAddress());
 
-            LocalServerContext.setContext(owner.getContextFactory().createContext(
+            final ServerContext context = owner.getContextFactory().createContext(
                     owner,
                     session,
-                    exchange,
                     request
-            ));
+            );
+
+            LocalServerContext.setContext(context);
 
             timingGenerator.keyframe(); // load session and context keyframe
 
@@ -63,7 +65,7 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
                 MethodHandler handler = owner.getMethods().get(uri);
 
                 request.setMethod(handler.getMethod());
-                RequestResponse response = handler.invoke(request);
+                RequestResponse response = handler.invoke(context);
                 request.setResponse(response);
 
                 timingGenerator.keyframe(); // invoke method keyframe

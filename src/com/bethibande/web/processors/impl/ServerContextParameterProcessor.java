@@ -11,9 +11,9 @@ import java.lang.reflect.Parameter;
 public class ServerContextParameterProcessor implements ParameterProcessor {
 
     @Override
-    public void process(WebRequest request, int parameterIndex, Executable executable, Parameter parameter) {
+    public void process(ServerContext context, int parameterIndex, Executable executable, Parameter parameter) {
         if(ServerContext.class.isAssignableFrom(parameter.getType())) {
-            request.setParameter(parameterIndex, LocalServerContext.getContext());
+            context.request().setParameter(parameterIndex, LocalServerContext.getContext());
         }
     }
 }

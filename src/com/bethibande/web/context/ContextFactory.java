@@ -8,6 +8,6 @@ import com.sun.net.httpserver.HttpExchange;
 @FunctionalInterface
 public interface ContextFactory {
 
-    ServerContext createContext(JWebServer server, Session session, HttpExchange exchange, WebRequest request);
+    ServerContext createContext(JWebServer server, Session session, WebRequest request);
 
 }
