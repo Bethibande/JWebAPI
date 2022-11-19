@@ -1,7 +1,6 @@
 package com.bethibande.web.processors.impl;
 
 import com.bethibande.web.annotations.JsonField;
-import com.bethibande.web.context.LocalServerContext;
 import com.bethibande.web.context.ServerContext;
 import com.bethibande.web.processors.AnnotationProcessor;
 import com.bethibande.web.types.WebRequest;
@@ -15,14 +14,13 @@ import java.lang.reflect.Parameter;
 public class JsonFieldAnnotationProcessor extends AnnotationProcessor<JsonField> {
 
     public JsonFieldAnnotationProcessor() {
-        super(JsonField.class);
+        super(JsonField.class, true);
     }
 
 
     @Override
-    public Object getValue(WebRequest request, JsonField annotation, Executable executable, Parameter parameter) {
-        ServerContext context = LocalServerContext.getContext();
-        if(context == null) throw new RuntimeException("Cannot process @JsonField annotation without context.");
+    public Object accept(ServerContext context, JsonField annotation, Executable executable, Parameter parameter) {
+        final WebRequest request = context.request();
         Gson gson = request.getServer().getGson();
 
         if(!context.metadata().hasMeta("JsonData")) {

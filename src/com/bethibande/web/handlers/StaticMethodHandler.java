@@ -1,6 +1,7 @@
 package com.bethibande.web.handlers;
 
 import com.bethibande.web.JWebServer;
+import com.bethibande.web.context.ServerContext;
 import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.processors.MethodInvocationHandler;
 import com.bethibande.web.response.RequestResponse;
@@ -15,9 +16,10 @@ public class StaticMethodHandler extends MethodHandler {
     }
 
     @Override
-    public RequestResponse invoke(WebRequest request) {
-        JWebServer server = request.getServer();
-        Method method = getMethod();
+    public RequestResponse invoke(ServerContext context) {
+        final WebRequest request = context.request();
+        final JWebServer server = context.server();
+        final Method method = getMethod();
 
         for(MethodInvocationHandler handler : server.getMethodInvocationHandlers()) {
             if(request.isFinished()) break;
@@ -26,7 +28,7 @@ public class StaticMethodHandler extends MethodHandler {
         }
         if(request.isFinished()) return request.getResponse();
 
-        super.prepare(request);
+        super.prepare(context);
 
         try {
             Object value = getMethod().invoke(null, request.getMethodInvocationParameters());

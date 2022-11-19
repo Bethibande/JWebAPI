@@ -116,7 +116,7 @@ public class TestHandler {
     public Object redirect() {
         return RequestResponse.build()
                 .withStatusCode(301)
-                .withLocation("/test");
+                .withLocation("/test2");
     }
 
 }

@@ -34,6 +34,9 @@ public @interface URI {
         }
     }
 
+    /**
+     * Value must always start with "/" like "/api/get/yourResource"
+     */
     String value();
     URIType type() default URIType.STRICT;
     RequestMethod[] methods() default RequestMethod.GET;
