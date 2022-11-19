@@ -267,11 +267,11 @@ public class JWebServer {
 
         for(Class<?> clazz : classes) {
             if(ParameterProcessor.class.isAssignableFrom(clazz)) {
-                registerProcessor(ReflectUtils.autoWireNewInstance((Class<? extends ParameterProcessor>) clazz, new ServerContext(this, null, null, null)));
+                registerProcessor(ReflectUtils.autoWireNewInstance((Class<? extends ParameterProcessor>) clazz, new ServerContext(this, null, null)));
                 continue;
             }
             if(MethodInvocationHandler.class.isAssignableFrom(clazz)) {
-                registerMethodInvocationHandler(ReflectUtils.autoWireNewInstance((Class<? extends MethodInvocationHandler>) clazz, new ServerContext(this, null, null, null)));
+                registerMethodInvocationHandler(ReflectUtils.autoWireNewInstance((Class<? extends MethodInvocationHandler>) clazz, new ServerContext(this, null, null)));
                 continue;
             }
 
@@ -294,11 +294,11 @@ public class JWebServer {
 
         for(Class<?> clazz : classes) {
             if(ParameterProcessor.class.isAssignableFrom(clazz)) {
-                registerProcessor(ReflectUtils.autoWireNewInstance((Class<? extends ParameterProcessor>) clazz, new ServerContext(this, null, null, null)));
+                registerProcessor(ReflectUtils.autoWireNewInstance((Class<? extends ParameterProcessor>) clazz, new ServerContext(this, null, null)));
                 continue;
             }
             if(MethodInvocationHandler.class.isAssignableFrom(clazz)) {
-                registerMethodInvocationHandler(ReflectUtils.autoWireNewInstance((Class<? extends MethodInvocationHandler>) clazz, new ServerContext(this, null, null, null)));
+                registerMethodInvocationHandler(ReflectUtils.autoWireNewInstance((Class<? extends MethodInvocationHandler>) clazz, new ServerContext(this, null, null)));
                 continue;
             }
 
