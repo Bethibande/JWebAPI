@@ -6,7 +6,6 @@ import com.sun.net.httpserver.HttpHandler;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -14,14 +13,17 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class HttpServer extends com.sun.net.httpserver.HttpServer {
 
     private ServerSocket socket;
-    private Executor executor;
+    private ThreadPoolExecutor executor;
 
-    private HashMap<String, HttpHandler> contexts = new HashMap<>();
+    private final HashMap<String, HttpHandler> contexts = new HashMap<>();
+
+    private volatile boolean stop = false;
 
     @Override
     public void bind(final InetSocketAddress addr, final int backlog) throws IOException {
@@ -51,6 +53,7 @@ public class HttpServer extends com.sun.net.httpserver.HttpServer {
         return Arrays.copyOf(header, length);
     }
 
+    @SuppressWarnings("ConstantConditions")
     private void handleClient(Socket client) {
         try {
             InputStream in = client.getInputStream();
@@ -93,7 +96,7 @@ public class HttpServer extends com.sun.net.httpserver.HttpServer {
     private void accept() {
         try {
             Socket client = socket.accept();
-            executor.execute(this::accept);
+            if(!stop) executor.execute(this::accept);
 
             this.handleClient(client);
         } catch(IOException e) {
@@ -110,7 +113,8 @@ public class HttpServer extends com.sun.net.httpserver.HttpServer {
 
     @Override
     public void setExecutor(Executor executor) {
-        this.executor = executor;
+        if(!(executor instanceof ThreadPoolExecutor tpe)) throw new RuntimeException("Executor has to be a ThreadPoolExecutor");
+        this.executor = tpe;
     }
 
     @Override
@@ -119,8 +123,21 @@ public class HttpServer extends com.sun.net.httpserver.HttpServer {
     }
 
     @Override
+    @SuppressWarnings("unused")
     public void stop(int delay) {
+        stop = true;
 
+        try {
+            boolean result = executor.awaitTermination(delay, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            socket.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

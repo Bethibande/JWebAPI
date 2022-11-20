@@ -122,22 +122,22 @@ public class HttpExchange extends com.sun.net.httpserver.HttpExchange {
 
     @Override
     public String getProtocol() {
-        return null;
+        return version;
     }
 
     @Override
     public Object getAttribute(String name) {
-        return null;
+        throw new RuntimeException("Action not Supported!");
     }
 
     @Override
     public void setAttribute(String name, Object value) {
-
+        throw new RuntimeException("Action not Supported!");
     }
 
     @Override
     public void setStreams(InputStream i, OutputStream o) {
-
+        throw new RuntimeException("Action not Supported!");
     }
 
     @Override

@@ -738,7 +738,8 @@ public class JWebServer {
 
     public void start() {
         try {
-            HttpServer server = HttpServer.create(bindAddress, 100);
+            HttpServer server = new com.bethibande.web.tcp.HttpServer();
+            server.bind(bindAddress, 100);
             start(server);
         } catch(IOException e) {
             e.printStackTrace();
