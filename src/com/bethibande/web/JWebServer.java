@@ -2,6 +2,8 @@ package com.bethibande.web;
 
 import com.bethibande.web.annotations.AutoLoad;
 import com.bethibande.web.annotations.URI;
+import com.bethibande.web.beans.GlobalBean;
+import com.bethibande.web.beans.GlobalBeanManager;
 import com.bethibande.web.cache.Cache;
 import com.bethibande.web.cache.CacheConfig;
 import com.bethibande.web.cache.CacheLifetimeType;
@@ -74,6 +76,8 @@ public class JWebServer {
     private Cache<UUID, Session> sessionCache;
     private Cache<String, CachedRequest> globalRequestCache;
 
+    private GlobalBeanManager globalBeanManager;
+
     private final List<ParameterProcessor> processors = new ArrayList<>();
     //private ArrayMap<URIObject, MethodHandler> methods = new ArrayMap<>(URIObject.class, URIObject[]::new, MethodHandler.class, MethodHandler[]::new);
     private final SimpleMap<URIObject, MethodHandler> methods = new SimpleMap<>(URIObject.class, MethodHandler.class);
@@ -116,6 +120,8 @@ public class JWebServer {
                         .withUpdateTimeout(TimeUnit.SECONDS.toMillis(1))
         );
 
+        globalBeanManager = new GlobalBeanManager();
+
         setCacheSupplier(new DefaultCacheSupplierImpl(Cache::new, Cache::new));
 
         registerMethodInvocationHandler(new URIAnnotationProcessor());
@@ -132,6 +138,7 @@ public class JWebServer {
         registerProcessor(new PostDataAnnotationProcessor());
         registerProcessor(new JsonFieldAnnotationProcessor());
         registerProcessor(new BeanParameterProcessor());
+        registerProcessor(new GlobalBeanParameterProcessor());
 
         registerOutputHandler(Object.class, new ObjectOutputHandler());
         registerOutputHandler(RequestResponse.class, new RequestResponseOutputHandler());
@@ -156,6 +163,67 @@ public class JWebServer {
     }
 
     /**
+     * Store a new global bean instance in the global bean manager
+     * @see #getGlobalBean(Class)
+     * @see #deleteGlobalBean(Class)
+     */
+    @SuppressWarnings("unused")
+    public void storeGlobalBean(GlobalBean bean) {
+        globalBeanManager.storeBean(bean);
+    }
+
+    /**
+     * Get the instance of a global bean from the global bean manager
+     * @see #storeGlobalBean(GlobalBean)
+     * @see #deleteGlobalBean(Class)
+     */
+    @SuppressWarnings("unused")
+    public <T extends GlobalBean> T getGlobalBean(Class<T> type) {
+        return globalBeanManager.getBean(type);
+    }
+
+    /**
+     * Delete a bean from the global bean manager
+     * @see #storeGlobalBean(GlobalBean)
+     * @see #getGlobalBean(Class)
+     */
+    @SuppressWarnings("unused")
+    public void deleteGlobalBean(Class<? extends GlobalBean> type) {
+        globalBeanManager.deleteBean(type);
+    }
+
+    /**
+     * Set the global bean manager instance
+     * @see #setGlobalBeanManager(GlobalBeanManager)
+     * @see #getGlobalBeanManager()
+     */
+    @SuppressWarnings("unused")
+    public JWebServer withGlobalBeanManager(GlobalBeanManager beanManager) {
+        setGlobalBeanManager(beanManager);
+        return this;
+    }
+
+    /**
+     * Set the global bean manager instance
+     * @see #getGlobalBeanManager()
+     * @see #withGlobalBeanManager(GlobalBeanManager)
+     */
+    @SuppressWarnings("unused")
+    public void setGlobalBeanManager(GlobalBeanManager beanManager) {
+        this.globalBeanManager = beanManager;
+    }
+
+    /**
+     * Get the global bean manager instance
+     * @see #setGlobalBeanManager(GlobalBeanManager)
+     * @see #withGlobalBeanManager(GlobalBeanManager)
+     */
+    @SuppressWarnings("unused")
+    public GlobalBeanManager getGlobalBeanManager() {
+        return globalBeanManager;
+    }
+
+    /**
      * Remove a registered handler
      * @param uri same uri as the one specified whilst registering handler, usually using the @URI annotation
      */
@@ -173,8 +241,8 @@ public class JWebServer {
 
     /**
      * Set the executor used by the server.
-     * @see #setExecutor(ScheduledThreadPoolExecutor) 
-     * @see #getExecutor() 
+     * @see #setExecutor(ScheduledThreadPoolExecutor)
+     * @see #getExecutor()
      */
     @SuppressWarnings("unused")
     public JWebServer withExecutor(ScheduledThreadPoolExecutor executor) {
@@ -184,7 +252,7 @@ public class JWebServer {
 
     /**
      * Set the executor used by the server.
-     * @see #withExecutor(ScheduledThreadPoolExecutor) 
+     * @see #withExecutor(ScheduledThreadPoolExecutor)
      * @see #getExecutor()
      */
     public void setExecutor(ScheduledThreadPoolExecutor executor) {
@@ -193,14 +261,14 @@ public class JWebServer {
 
     /**
      * Get the executor used by the server.
-     * @see #withExecutor(ScheduledThreadPoolExecutor) 
+     * @see #withExecutor(ScheduledThreadPoolExecutor)
      * @see #setExecutor(ScheduledThreadPoolExecutor)
      */
     @SuppressWarnings("unused")
     public ScheduledThreadPoolExecutor getExecutor() {
         return this.executor;
     }
-    
+
     /**
      * Set the logger instance used by this server
      * @see #setLogger(Logger)

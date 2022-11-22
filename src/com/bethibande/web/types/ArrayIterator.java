@@ -1,33 +1,35 @@
 package com.bethibande.web.types;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Iterator;
+import java.util.function.Consumer;
 
 public class ArrayIterator<T> implements Iterator<T> {
 
-    @SafeVarargs
-    public static <T> ArrayIterator<T> of(T... array) {
-        return new ArrayIterator<>(array);
+    public static <T> ArrayIterator<T> of(T... type) {
+        return new ArrayIterator<>(type);
     }
 
-    private final T[] array;
+    private T[] array;
     private int index = 0;
 
-    public ArrayIterator(T[] array) {
+    public ArrayIterator(@NotNull T[] array) {
         this.array = array;
     }
 
     @Override
+    public void remove() {
+        throw new UnsupportedOperationException("remove is not supported!");
+    }
+
+    @Override
     public boolean hasNext() {
-        return index < array.length;
+        return index + 1 < array.length;
     }
 
     @Override
     public T next() {
         return array[index++];
-    }
-
-    @Override
-    public void remove() {
-        throw new RuntimeException("remove action is not supported.");
     }
 }

@@ -10,9 +10,11 @@ public class TestBean extends Bean {
 
     private int number;
     private final transient String path;
+    private final transient ServiceBean serviceBean;
 
-    public TestBean(@Path String path) {
+    public TestBean(@Path String path, ServiceBean bean) {
         this.path = path;
+        this.serviceBean = bean;
     }
 
     public int getNumber() {
@@ -25,6 +27,7 @@ public class TestBean extends Bean {
 
     public void increment() {
         number++;
+        serviceBean.printNumber(number);
     }
 
     @PostConstruct
