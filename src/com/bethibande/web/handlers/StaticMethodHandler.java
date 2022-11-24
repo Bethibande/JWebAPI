@@ -2,6 +2,7 @@ package com.bethibande.web.handlers;
 
 import com.bethibande.web.JWebServer;
 import com.bethibande.web.context.ServerContext;
+import com.bethibande.web.types.ProcessorMappings;
 import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.processors.MethodInvocationHandler;
 import com.bethibande.web.response.RequestResponse;
@@ -11,8 +12,8 @@ import java.lang.reflect.Method;
 
 public class StaticMethodHandler extends MethodHandler {
 
-    public StaticMethodHandler(Method method) {
-        super(method);
+    public StaticMethodHandler(Method method, ProcessorMappings mappings) {
+        super(method, mappings);
     }
 
     @Override

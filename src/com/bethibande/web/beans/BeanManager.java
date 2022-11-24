@@ -30,7 +30,7 @@ public class BeanManager {
     /**
      * Gets bean using {@link #getBean(Class, ServerContext)}, activates it and then returns it
      */
-    public <T extends Bean> T activeBean(Class<T> type, ServerContext context) {
+    public <T extends Bean> T activateBean(Class<T> type, ServerContext context) {
         T bean = getBean(type, context);
         activeBeans.put(type, bean);
 
@@ -98,18 +98,18 @@ public class BeanManager {
     }
 
     private <T extends Bean> T getBeanFromSnapshot(Class<T> type, ServerContext context) {
-        T bean = createBean(type, context);
+        T bean = factory.create(type, context);
         BeanSnapshot snapshot = beans.get(type);
         HashMap<Field, Object> state = snapshot.state();
 
-        for(Field field : state.keySet()) {
+        state.forEach((field, value) -> {
             field.setAccessible(true);
             try {
-                field.set(bean, state.get(field));
+                field.set(bean, value);
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
-        }
+        });
 
         return bean;
     }

@@ -2,6 +2,7 @@ package com.bethibande.web.handlers;
 
 import com.bethibande.web.JWebServer;
 import com.bethibande.web.context.ServerContext;
+import com.bethibande.web.types.ProcessorMappings;
 import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.processors.MethodInvocationHandler;
 import com.bethibande.web.response.RequestResponse;
@@ -14,8 +15,8 @@ public class InstanceMethodHandler extends MethodHandler {
 
     private final Object instance;
 
-    public InstanceMethodHandler(Method method) {
-        super(method);
+    public InstanceMethodHandler(Method method, ProcessorMappings mappings) {
+        super(method, mappings);
 
         this.instance = ReflectUtils.createInstance(method.getDeclaringClass());
     }

@@ -741,13 +741,15 @@ public class JWebServer {
     }
 
     public void registerMethod(Method method) {
-        URI uri = method.getAnnotation(URI.class);
+        final URI uri = method.getAnnotation(URI.class);
+        final ProcessorMappings mappings = ProcessorMappings.of(method, this);
+
         logger.finest(String.format("Register Method > %s:%s %s %s", method.getDeclaringClass().getName(), method.getName(), uri.value(), Arrays.toString(uri.methods())));
 
         if(method.getModifiers() == Modifier.STATIC) {
-            this.methods.put(URIObject.of(uri), new StaticMethodHandler(method));
+            this.methods.put(URIObject.of(uri), new StaticMethodHandler(method, mappings));
         } else {
-            this.methods.put(URIObject.of(uri), new InstanceMethodHandler(method));
+            this.methods.put(URIObject.of(uri), new InstanceMethodHandler(method, mappings));
         }
     }
 

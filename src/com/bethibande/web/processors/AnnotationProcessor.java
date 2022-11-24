@@ -9,17 +9,20 @@ import java.lang.reflect.Parameter;
 public abstract class AnnotationProcessor<T extends Annotation> extends FilteredParameterProcessor {
 
     private final Class<T> annotation;
+    private final boolean requiresRequest;
 
     public AnnotationProcessor(Class<T> annotation, boolean requiresRequest) {
-        super(requiresRequest ? ParameterFilter.annotationRequestFilter(annotation): ParameterFilter.requestFilter());
+        super(ParameterFilter.annotationFilter(annotation));
 
         this.annotation = annotation;
+        this.requiresRequest = requiresRequest;
     }
 
     public abstract Object accept(ServerContext context, T annotation, Executable executable, Parameter parameter);
 
     @Override
-    public void accept(ServerContext context, int index, Executable executable, Parameter parameter) {
-        context.request().setParameter(index, accept(context, parameter.getAnnotation(annotation), executable, parameter));
+    public Object process(ServerContext context, Executable executable, Parameter parameter) {
+        if(requiresRequest && context.session() == null) return null;
+        return  accept(context, parameter.getAnnotation(annotation), executable, parameter);
     }
 }

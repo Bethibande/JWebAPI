@@ -1,34 +1,38 @@
 package com.bethibande.web.util;
 
-import com.bethibande.web.JWebServer;
 import com.bethibande.web.context.ServerContext;
 import com.bethibande.web.processors.ParameterProcessor;
-import com.bethibande.web.types.WebRequest;
+import com.bethibande.web.types.ProcessorMappings;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
+import java.util.HashMap;
 
 public class ReflectUtils {
 
+    public static HashMap<Class<?>, ProcessorMappings> mappings = new HashMap<>();
+
     @SuppressWarnings("unchecked")
     public static <T> T autoWireNewInstance(Class<T> type, ServerContext context) {
-        JWebServer server = context.server();
-        WebRequest request = context.request().createClone();
         Constructor<T> constructor = (Constructor<T>) type.getConstructors()[0];
         Parameter[] parameters = constructor.getParameters();
+        Object[] values = new Object[parameters.length];
+        ProcessorMappings mappings = ReflectUtils.mappings.get(type);
+        if(mappings == null) {
+            mappings = ProcessorMappings.of(constructor, context.server());
+            ReflectUtils.mappings.put(type, mappings);
+        }
 
-        request.setMethodInvocationParameters(new Object[parameters.length]);
+        ParameterProcessor[] processors = mappings.getProcessors();
 
         for(int i = 0; i < parameters.length; i++) {
-            for(ParameterProcessor processor : server.getProcessors()) {
-                processor.process(server.getContextFactory().createContext(server, context.session(), request), i, constructor, parameters[i]);
-            }
+            values[i] = processors[i].process(context, constructor, parameters[i]);
         }
 
         try {
             constructor.setAccessible(true);
-            return constructor.newInstance(request.getMethodInvocationParameters());
+            return constructor.newInstance(values);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }

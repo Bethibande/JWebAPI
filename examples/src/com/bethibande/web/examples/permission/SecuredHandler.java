@@ -29,12 +29,11 @@ public class SecuredHandler {
     }
 
     @URI("/get/name")
+    @SecuredEntry(permission = Permissions.USERNAME, access = Access.READ)
     public Object getName(
             SecuredContext context,
             Session session
     ) {
-        if(!context.canRead(Permissions.USERNAME)) return null;
-
         return new RequestResponse()
                 .withStatusCode(202)
                 .withContentData(new Message(99, session.getMeta().getString("username")));

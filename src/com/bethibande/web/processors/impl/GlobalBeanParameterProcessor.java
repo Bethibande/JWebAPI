@@ -2,17 +2,21 @@ package com.bethibande.web.processors.impl;
 
 import com.bethibande.web.beans.GlobalBean;
 import com.bethibande.web.context.ServerContext;
-import com.bethibande.web.processors.ParameterProcessor;
+import com.bethibande.web.processors.FilteredParameterProcessor;
+import com.bethibande.web.processors.ParameterFilter;
 
 import java.lang.reflect.Executable;
 import java.lang.reflect.Parameter;
 
-public class GlobalBeanParameterProcessor implements ParameterProcessor {
+public class GlobalBeanParameterProcessor extends FilteredParameterProcessor {
+
+    public GlobalBeanParameterProcessor() {
+        super(ParameterFilter.typeAssignableFilter(GlobalBean.class));
+    }
 
     @Override
-    public void process(ServerContext context, int parameterIndex, Executable executable, Parameter parameter) {
-        if(GlobalBean.class.isAssignableFrom(parameter.getType())) {
-            context.request().setParameter(parameterIndex, context.server().getGlobalBean((Class<? extends GlobalBean>) parameter.getType()));
-        }
+    public Object process(ServerContext context, Executable executable, Parameter parameter) {
+        return context.server().getGlobalBean((Class<? extends GlobalBean>) parameter.getType());
     }
+
 }

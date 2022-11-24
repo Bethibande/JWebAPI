@@ -1,6 +1,6 @@
 package com.bethibande.web.processors;
 
-import com.bethibande.web.context.ServerContext;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Executable;
@@ -13,23 +13,25 @@ public interface ParameterFilter {
      * This filter will only apply processors to parameters with a certain annotation
      */
     static ParameterFilter annotationFilter(Class<? extends Annotation> annotation) {
-        return (context, executable, parameter) -> parameter.isAnnotationPresent(annotation);
+        return (executable, parameter) -> parameter.isAnnotationPresent(annotation);
     }
 
     /**
-     * This filter will only apply processors to parameters if the context has a valid request and session
+     * This filter will only apply processors to parameters of a certain type, parameter type and specified type must be equals
+     * @see #typeAssignableFilter(Class)
      */
-    static ParameterFilter requestFilter() {
-        return (context, executable, parameter) -> context.request() != null && context.session() != null;
+    static ParameterFilter typeFilter(Class<?> type) {
+        return ((executable, parameter) -> parameter.getType().equals(type));
     }
 
     /**
-     * This filter will ony apply processors to parameters with a certain annotation, if the context has a valid request and session
+     * This filter will only apply processors to parameters of a certain type, parameter type may be subclass of specified type.
+     * Functions like instanceof using the Class.isAssignableFrom method
      */
-    static ParameterFilter annotationRequestFilter(final Class<? extends Annotation> annotation) {
-        return (context, executable, parameter) -> parameter.isAnnotationPresent(annotation) && context.request() != null && context.session() != null;
+    static ParameterFilter typeAssignableFilter(@NotNull Class<?> type) {
+        return ((executable, parameter) -> type.isAssignableFrom(parameter.getType()));
     }
 
-    boolean filter(final ServerContext context, final Executable executable, final Parameter parameter);
+    boolean filter(final Executable executable, final Parameter parameter);
 
 }

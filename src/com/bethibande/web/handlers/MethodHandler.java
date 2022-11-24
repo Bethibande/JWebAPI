@@ -1,8 +1,8 @@
 package com.bethibande.web.handlers;
 
-import com.bethibande.web.JWebServer;
 import com.bethibande.web.context.ServerContext;
 import com.bethibande.web.processors.ParameterProcessor;
+import com.bethibande.web.types.ProcessorMappings;
 import com.bethibande.web.response.RequestResponse;
 
 import java.lang.reflect.Method;
@@ -11,9 +11,11 @@ import java.lang.reflect.Parameter;
 public abstract class MethodHandler {
 
     private final Method method;
+    private final ProcessorMappings mappings;
 
-    public MethodHandler(Method method) {
+    public MethodHandler(Method method, ProcessorMappings mappings) {
         this.method = method;
+        this.mappings = mappings;
 
         method.setAccessible(true);
     }
@@ -23,17 +25,15 @@ public abstract class MethodHandler {
     }
 
     protected void prepare(ServerContext context) {
-        final JWebServer server = context.server();
         final Parameter[] parameters = method.getParameters();
+        final ParameterProcessor[] processors = mappings.getProcessors();
+        final Object[] values = new Object[parameters.length];
 
         for(int i = 0; i < parameters.length; i++) {
-            Parameter parameter = parameters[i];
-
-            for(ParameterProcessor processor : server.getProcessors()) {
-                processor.process(context, i, method, parameter);
-            }
+            values[i] = processors[i].process(context, method, parameters[i]);
         }
 
+        context.request().setMethodInvocationParameters(values);
         context.request().setFinished(false);
     }
 

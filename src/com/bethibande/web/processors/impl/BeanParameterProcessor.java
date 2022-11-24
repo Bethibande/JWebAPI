@@ -14,24 +14,23 @@ import java.lang.reflect.Parameter;
 public class BeanParameterProcessor extends FilteredParameterProcessor {
 
     public BeanParameterProcessor() {
-        super(ParameterFilter.requestFilter());
+        super(ParameterFilter.typeAssignableFilter(Bean.class));
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public void accept(ServerContext context, int parameterIndex, Executable executable, Parameter parameter) {
-        if(Bean.class.isAssignableFrom(parameter.getType())) {
-            Session session = context.session();
-            MetaData meta = session.getMeta();
+    public Object process(ServerContext context, Executable executable, Parameter parameter) {
+        if(context.server() == null) return null;
 
-            if(!meta.hasMeta("localBeanManager")) {
-                meta.set("localBeanManager", new BeanManager());
-            }
+        Session session = context.session();
+        MetaData meta = session.getMeta();
 
-            BeanManager beanManager = meta.getAsType("localBeanManager", BeanManager.class);
-            Bean bean = beanManager.activeBean((Class<Bean>) parameter.getType(), context);
-
-            context.request().setParameter(parameterIndex, bean);
+        if(!meta.hasMeta("localBeanManager")) {
+            meta.set("localBeanManager", new BeanManager());
         }
+
+        BeanManager beanManager = meta.getAsType("localBeanManager", BeanManager.class);
+
+        return beanManager.activateBean((Class<Bean>) parameter.getType(), context);
     }
 }
