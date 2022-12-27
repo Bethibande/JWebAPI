@@ -746,11 +746,14 @@ public class JWebServer {
 
         logger.finest(String.format("Register Method > %s:%s %s %s", method.getDeclaringClass().getName(), method.getName(), uri.value(), Arrays.toString(uri.methods())));
 
-        if(method.getModifiers() == Modifier.STATIC) {
-            this.methods.put(URIObject.of(uri), new StaticMethodHandler(method, mappings));
+        final MethodHandler methodHandler;
+        if(Modifier.isStatic(method.getModifiers())) {
+            methodHandler = new StaticMethodHandler(method, mappings);
         } else {
-            this.methods.put(URIObject.of(uri), new InstanceMethodHandler(method, mappings));
+            methodHandler = new InstanceMethodHandler(method, mappings);
         }
+
+        this.methods.searchInsert(URIObject::priority, URIObject.of(uri), methodHandler);
     }
 
     public void registerHandlerClass(Class<?> handler) {

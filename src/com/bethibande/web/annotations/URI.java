@@ -41,5 +41,6 @@ public @interface URI {
     String value();
     URIType type() default URIType.STRICT;
     RequestMethod[] methods() default RequestMethod.GET;
+    int priority() default 0;
 
 }

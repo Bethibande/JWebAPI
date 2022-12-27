@@ -15,6 +15,13 @@ import java.util.concurrent.TimeUnit;
 @AutoLoad
 public class TestHandler {
 
+    @URI(value = "/", type = URI.URIType.STRING, priority = Integer.MIN_VALUE)
+    public RequestResponse notFoundHandler() {
+        return new RequestResponse()
+                .withStatusCode(404)
+                .withContentData(new Message(404, "Path not found"));
+    }
+
     @URI("/count")
     public Object count(TestBean bean) {
         bean.increment();

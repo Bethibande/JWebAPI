@@ -4,6 +4,7 @@ import com.bethibande.web.util.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
+import java.util.function.Function;
 
 public class SimpleMap<K, V> implements Iterable<K> {
 
@@ -38,6 +39,43 @@ public class SimpleMap<K, V> implements Iterable<K> {
         return -1;
     }
 
+    public void searchInsert(final Function<K, Integer> intMapper, final K key, final V value) {
+        int l = 0;
+        int r = keys.length;
+
+        final int target = intMapper.apply(key);
+        int insertAt = 0;
+
+        while(true) {
+            if(keys.length == 0) {
+                break;
+            }
+
+            final int middle = (int)((r - l) / 2.0);
+            final int _value = intMapper.apply(keys[l + middle]);
+
+            if(_value == target) {
+                insertAt = l + middle;
+                break;
+            }
+            if(middle == 0) {
+                if(target > _value) {
+                    insertAt = l + middle;
+                    break;
+                }
+                insertAt = l + middle + 1;
+                break;
+            }
+            if(_value > target) {
+                l += middle;
+            }
+            if(_value < target) {
+                r -= middle;
+            }
+        }
+
+        putAtIndex(insertAt, key, value);
+    }
 
     public void remove(K key) {
         int index = indexOf(key);
@@ -59,6 +97,25 @@ public class SimpleMap<K, V> implements Iterable<K> {
         if(index == -1) return null;
 
         return values[index];
+    }
+
+    public void putAtIndex(final int index, K key, V value) {
+        remove(key);
+
+        K[] oldKeys = keys;
+        V[] oldValues = values;
+
+        changeArraySize(keys.length + 1);
+
+        if(oldKeys.length != 0) {
+            System.arraycopy(oldKeys, 0, keys, 0, index);
+            System.arraycopy(oldKeys, index, keys, index+1, oldKeys.length-index);
+            System.arraycopy(oldValues, 0, values, 0, index);
+            System.arraycopy(oldValues, index, values, index+1, oldValues.length-index);
+        }
+
+        keys[index] = key;
+        values[index] = value;
     }
 
     public void put(K key, V value) {
