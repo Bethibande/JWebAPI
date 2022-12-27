@@ -41,6 +41,10 @@ public @interface URI {
     String value();
     URIType type() default URIType.STRICT;
     RequestMethod[] methods() default RequestMethod.GET;
+
+    /**
+     * Priority used to sort list of handlers, the smaller the number, the higher the list index
+     */
     int priority() default 0;
 
 }

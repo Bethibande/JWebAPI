@@ -39,6 +39,13 @@ public class SimpleMap<K, V> implements Iterable<K> {
         return -1;
     }
 
+    /**
+     * Insert value into map using binary search. Insert objects from the biggest value to the smallest
+     * where the biggest value is at index 0 and the smallest at index n.
+     * @param intMapper function to map keys to integer values used to compare keys
+     * @param key key to insert
+     * @param value value to insert
+     */
     public void searchInsert(final Function<K, Integer> intMapper, final K key, final V value) {
         int l = 0;
         int r = keys.length;
@@ -99,6 +106,13 @@ public class SimpleMap<K, V> implements Iterable<K> {
         return values[index];
     }
 
+    /**
+     * Does the same as the {@link #put(Object, Object)} method but instead of inserting the key/value pair at the end of the map,
+     * inserts them at the given index, index may not be bigger then the size of the map
+     * @param index index to insert the value at
+     * @param key key to insert
+     * @param value value to insert
+     */
     public void putAtIndex(final int index, K key, V value) {
         remove(key);
 
