@@ -43,6 +43,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -84,6 +85,8 @@ public class JWebServer {
     private final HashMap<Class<?>, OutputHandler<?>> outputHandlers = new HashMap<>();
     private final HashMap<Class<?>, Class<? extends OutputWriter>> writers = new HashMap<>();
     private final List<MethodInvocationHandler> methodInvocationHandlers = new ArrayList<>();
+
+    private BiConsumer<Throwable, ServerContext> errorHandler = (th, ctx) -> th.printStackTrace();
 
     private ServerCacheSupplier cacheSupplier;
     private ContextFactory contextFactory;
@@ -160,6 +163,34 @@ public class JWebServer {
         if(!isAlive()) return;
 
         stop();
+    }
+
+    /**
+     * @see #setErrorHandler(BiConsumer)
+     * @see #getErrorHandler() 
+     */
+    public JWebServer withErrorHandler(final BiConsumer<Throwable, ServerContext> errorHandler) {
+        setErrorHandler(errorHandler);
+        return this;
+    }
+    
+    /**
+     * Set the error handler used to handle exceptions
+     * @see #getErrorHandler() 
+     * @see #withErrorHandler(BiConsumer) 
+     */
+    public void setErrorHandler(final BiConsumer<Throwable, ServerContext> errorHandler) {
+        logger.config(String.format("Update Error Handler > %s", errorHandler.getClass()));
+        this.errorHandler = errorHandler;
+    }
+
+    /**
+     * Get the error handler used to handle exceptions
+     * @see #setErrorHandler(BiConsumer)
+     * @see #withErrorHandler(BiConsumer) 
+     */
+    public BiConsumer<Throwable, ServerContext> getErrorHandler() {
+        return errorHandler;
     }
 
     /**

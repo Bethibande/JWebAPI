@@ -25,7 +25,7 @@ public class HttpExchange extends com.sun.net.httpserver.HttpExchange {
 
     private final Headers responseHeaders = new Headers();
 
-    private int responseCode = 202;
+    private int responseCode = -1;
 
     public HttpExchange(Socket owner, String method, URI uri, String version, Headers requestHeaders) {
         this.owner = owner;

@@ -35,7 +35,7 @@ public class StaticMethodHandler extends MethodHandler {
             Object value = getMethod().invoke(null, request.getMethodInvocationParameters());
             request.getResponse().setContentData(value);
         } catch(IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
 
         for(MethodInvocationHandler handler : server.getMethodInvocationHandlers()) {

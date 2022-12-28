@@ -14,6 +14,7 @@ import com.bethibande.web.sessions.Session;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -95,7 +96,8 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
                 break;
             }
         } catch(Throwable th) {
-            th.printStackTrace();
+            owner.getErrorHandler().accept(th, LocalServerContext.getContext());
+            handleError();
         }
 
         LocalServerContext.clearContext();
@@ -108,16 +110,52 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
         }
     }
 
+    private void handleError() {
+        final ServerContext context = LocalServerContext.getContext();
+        if(context == null) return;
+        if(context.request().getExchange().getResponseCode() != -1) return; // checks if response has already been sent
+
+        RequestResponse response = context.request().getResponse();
+
+
+        while(response.getContentData() != null && owner.getWriters().get(response.getContentData().getClass()) == null) {
+            OutputHandler<?> outputHandler = owner.getOutputHandler(response.getContentData().getClass());
+            if(outputHandler == null) outputHandler = owner.getOutputHandler(Object.class);
+
+            ((OutputHandler<Object>) outputHandler).update(response.getContentData(), context.request());
+        }
+
+        final HttpExchange exchange = context.request().getExchange();
+        final Headers responseHeader = exchange.getResponseHeaders();
+        responseHeader.putAll(response.getHeader());
+        responseHeader.set("Connection", "close");
+        responseHeader.set("Access-Control-Allow-Origin", "*");
+
+        try {
+            exchange.sendResponseHeaders(response.getStatusCode(), response.getContentLength());
+
+            if(response.getContentLength() > 0) {
+                OutputWriter writer = owner.getWriter(response.getContentData().getClass());
+                if(writer == null) throw new RuntimeException("There is no writer for the type: '" + response.getContentData().getClass() + "'!");
+                writer.write(context.request(), response);
+            }
+
+            exchange.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void logTimings(Logger logger, TimingGenerator timings) {
         logger.finer(String.format("Timings > Total %d microseconds > Load Session and Context %d, find uri %d, invoke method %d, handle return value %d, send header %d, writing %d, clean up %d",
-                timings.getTotalTime(),
-                timings.getTiming(0),
-                timings.getTiming(1),
-                timings.getTiming(2),
-                timings.getTiming(3),
-                timings.getTiming(4),
-                timings.getTiming(5),
-                timings.getTiming(6)));
+                                   timings.getTotalTime(),
+                                   timings.getTiming(0),
+                                   timings.getTiming(1),
+                                   timings.getTiming(2),
+                                   timings.getTiming(3),
+                                   timings.getTiming(4),
+                                   timings.getTiming(5),
+                                   timings.getTiming(6)));
     }
 
 }
