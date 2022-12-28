@@ -100,7 +100,7 @@ public class JWebServer {
      */
     private void initValues() {
         executor = new ScheduledThreadPoolExecutor(10);
-        logger = LoggerFactory.createLogger(executor);
+        logger = LoggerFactory.createLogger(this);
         logger.setLevel(Level.OFF);
 
         bindAddress = new InetSocketAddress("0.0.0.0", 80);
@@ -349,23 +349,6 @@ public class JWebServer {
     public void setLogLevel(Level level) {
         logger.config(String.format("Update LogLevel %s > %s", this.logger.getLevel().getName(), level.getName()));
         this.logger.setLevel(level);
-    }
-
-    /**
-     * Sets the loggers style
-     * @see #setLogStyle(LoggerFactory.LogStyle)
-     */
-    @SuppressWarnings("unused")
-    public JWebServer withLogStyle(LoggerFactory.LogStyle style) {
-        setLogStyle(style);
-        return this;
-    }
-
-    /**
-     * Sets the loggers style
-     */
-    public void setLogStyle(LoggerFactory.LogStyle style) {
-        LoggerFactory.setLogStyle(style, this.logger);
     }
 
     /**
