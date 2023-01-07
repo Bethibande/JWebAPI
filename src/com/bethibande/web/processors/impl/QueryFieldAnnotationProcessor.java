@@ -24,7 +24,7 @@ public class QueryFieldAnnotationProcessor extends AnnotationProcessor<QueryFiel
             return request.getQuery().getAsBoolean(key);
         }
         if(type == String.class || type == CharSequence.class) {
-            return request.getQuery().getAsShort(key);
+            return request.getQuery().getAsString(key);
         }
         if(type == int.class || type == Integer.class) {
             return request.getQuery().getAsInt(key);
