@@ -28,7 +28,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'de.bethibande:jwebapi:2.1.3'
+    implementation 'de.bethibande:jwebapi:2.1.5'
 }
 ```
 ### Maven
@@ -41,7 +41,7 @@ dependencies {
 <dependency>
     <groupId>de.bethibande</groupId>
     <artifactId>jwebapi</artifactId>
-    <version>2.1.3</version>
+    <version>2.1.5</version>
 </dependency>
 ```
 
