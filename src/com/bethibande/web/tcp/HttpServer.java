@@ -99,9 +99,7 @@ public class HttpServer extends com.sun.net.httpserver.HttpServer {
             if(!stop) executor.execute(this::accept);
 
             this.handleClient(client);
-        } catch(IOException e) {
-            e.printStackTrace();
-        }
+        } catch(IOException ignored) {}
     }
 
     @Override
@@ -163,6 +161,6 @@ public class HttpServer extends com.sun.net.httpserver.HttpServer {
 
     @Override
     public InetSocketAddress getAddress() {
-        return null;
+        return (InetSocketAddress) socket.getLocalSocketAddress();
     }
 }

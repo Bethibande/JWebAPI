@@ -22,16 +22,37 @@ import com.bethibande.web.io.OutputWriter;
 import com.bethibande.web.io.StreamWriter;
 import com.bethibande.web.loader.ClassCollector;
 import com.bethibande.web.logging.LoggerFactory;
-import com.bethibande.web.processors.*;
-import com.bethibande.web.processors.impl.*;
+import com.bethibande.web.processors.MethodInvocationHandler;
+import com.bethibande.web.processors.ParameterProcessor;
+import com.bethibande.web.processors.impl.BeanHandler;
+import com.bethibande.web.processors.impl.BeanParameterProcessor;
+import com.bethibande.web.processors.impl.CachedRequestHandler;
+import com.bethibande.web.processors.impl.GlobalBeanParameterProcessor;
+import com.bethibande.web.processors.impl.HeaderValueAnnotationProcessor;
+import com.bethibande.web.processors.impl.InputStreamParameterProcessor;
+import com.bethibande.web.processors.impl.JsonFieldAnnotationProcessor;
+import com.bethibande.web.processors.impl.PathAnnotationProcessor;
+import com.bethibande.web.processors.impl.PostDataAnnotationProcessor;
+import com.bethibande.web.processors.impl.QueryFieldAnnotationProcessor;
+import com.bethibande.web.processors.impl.RemoteAddressAnnotationProcessor;
+import com.bethibande.web.processors.impl.ServerContextParameterProcessor;
+import com.bethibande.web.processors.impl.SessionParameterProcessor;
+import com.bethibande.web.processors.impl.URIAnnotationProcessor;
 import com.bethibande.web.response.InputStreamWrapper;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
-import com.bethibande.web.types.*;
+import com.bethibande.web.types.CacheType;
+import com.bethibande.web.types.ServerInterface;
+import com.bethibande.web.types.ProcessorMappings;
+import com.bethibande.web.types.ServerCacheConfig;
+import com.bethibande.web.types.ServerCacheSupplier;
+import com.bethibande.web.types.SimpleMap;
+import com.bethibande.web.types.URIObject;
 import com.bethibande.web.types.impl.DefaultCacheSupplierImpl;
 import com.bethibande.web.util.ReflectUtils;
 import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpServer;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -40,7 +61,12 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
@@ -52,14 +78,11 @@ import static com.bethibande.web.logging.ConsoleColors.*;
 /**
  * This class represents a Http or Https Server.<br>
  * This class uses the java HttpServer or alternatively HttpsServer classes to create and run a http server. <br>
- * Default bind address is 0.0.0.0 and port 80
  */
 public class JWebServer {
 
-    private InetSocketAddress bindAddress;
-
     private ScheduledThreadPoolExecutor executor;
-    private HttpServer server;
+    private final List<ServerInterface> interfaces = new ArrayList<>();
 
     private Logger logger;
 
@@ -80,7 +103,6 @@ public class JWebServer {
     private GlobalBeanManager globalBeanManager;
 
     private final List<ParameterProcessor> processors = new ArrayList<>();
-    //private ArrayMap<URIObject, MethodHandler> methods = new ArrayMap<>(URIObject.class, URIObject[]::new, MethodHandler.class, MethodHandler[]::new);
     private final SimpleMap<URIObject, MethodHandler> methods = new SimpleMap<>(URIObject.class, MethodHandler.class);
     private final HashMap<Class<?>, OutputHandler<?>> outputHandlers = new HashMap<>();
     private final HashMap<Class<?>, Class<? extends OutputWriter>> writers = new HashMap<>();
@@ -103,20 +125,18 @@ public class JWebServer {
         logger = LoggerFactory.createLogger(this);
         logger.setLevel(Level.OFF);
 
-        bindAddress = new InetSocketAddress("0.0.0.0", 80);
-
         cacheConfig = new ServerCacheConfig(
-                new CacheConfig()
+                new CacheConfig() // session cache
                         .withLifetimeType(CacheLifetimeType.ON_ACCESS)
                         .withMaxItems(100)
                         .withMaxLifetime(TimeUnit.MINUTES.toMillis(10))
                         .withUpdateTimeout(TimeUnit.MINUTES.toMillis(1)),
-                new CacheConfig()
+                new CacheConfig() // global request cache
                         .withLifetimeType(CacheLifetimeType.ON_CREATION)
                         .withMaxLifetime(10000L)
                         .withMaxItems(100)
                         .withUpdateTimeout(TimeUnit.SECONDS.toMillis(2)),
-                new CacheConfig()
+                new CacheConfig() // local/session request cache
                         .withLifetimeType(CacheLifetimeType.ON_CREATION)
                         .withMaxLifetime(10000L)
                         .withMaxItems(10)
@@ -683,20 +703,6 @@ public class JWebServer {
         writers.put(type, writer);
     }
 
-    @SuppressWarnings("unused")
-    public JWebServer withBindAddress(String address, int port) {
-        setBindAddress(new InetSocketAddress(address, port));
-        return this;
-    }
-
-    /**
-     * Binds to 0.0.0.0:port
-     */
-    public JWebServer withBindAddress(int port) {
-        setBindAddress(new InetSocketAddress("0.0.0.0", port));
-        return this;
-    }
-
     public JWebServer withHandler(Class<?> handler) {
         registerHandlerClass(handler);
         return this;
@@ -780,11 +786,6 @@ public class JWebServer {
     }
 
     @SuppressWarnings("unused")
-    public InetSocketAddress getBindAddress() {
-        return bindAddress;
-    }
-
-    @SuppressWarnings("unused")
     public Cache<UUID, Session> getSessionCache() {
         return sessionCache;
     }
@@ -801,29 +802,67 @@ public class JWebServer {
         return methods;
     }
 
-    @SuppressWarnings("unused")
-    public JWebServer withBindAddress(InetSocketAddress bindAddress) {
-        setBindAddress(bindAddress);
-        return this;
-    }
-
-    public void setBindAddress(InetSocketAddress bindAddress) {
-        logger.config(String.format("Set BindAddress > %s", annotate(bindAddress.toString().substring(1), BLUE)));
-        this.bindAddress = bindAddress;
-    }
-
     public boolean isAlive() {
-        return server != null;
+        return !interfaces.isEmpty();
     }
 
+    /**
+     * Gets all server interfaces the server is listening on
+     */
+    public List<ServerInterface> getInterfaces() {
+        return List.copyOf(interfaces);
+    }
+
+    /**
+     * Get a server interface using its bind address. The method will return null,
+     * if there is no interface for the given address or the address is null.
+     */
+    public @Nullable ServerInterface getInterfaceByAddress(final InetSocketAddress address) {
+        if(address == null) return null;
+
+        return interfaces.stream().filter(it -> it.address().equals(address)).findFirst().orElse(null);
+    }
+
+    /**
+     * Stops and deletes a server interface. <br>
+     * !! Note: Memory Leaks, if you want to stop all interfaces, and don't plan to reuse the server instance,
+     * call {@link #stop()}. stop() will clear the internal session and request cache.
+     * This method however does not clear internal caches.
+     */
+    public void stop(final ServerInterface _interface) {
+        _interface.server().stop(0);
+        interfaces.remove(_interface);
+        logger.info(String.format(
+                "%s stopped %s",
+                annotate("JWebAPI Interface", BLUE + BOLD),
+                annotate(_interface.server().getAddress().toString().substring(1), MAGENTA)
+        ));
+    }
+
+
+    /**
+     * Stops the entire server including all server interfaces and destroys session and global request caches,
+     * allowing them to be collected by garbage collection.
+     */
     public void stop() {
-        server.stop(0);
-        server = null;
+        interfaces.forEach(this::stop);
+
+        interfaces.clear();
+
+        this.sessionCache = null;
+        this.globalRequestCache = null;
 
         logger.info(String.format("%s stopped", annotate("JWebAPI Server", BLUE + BOLD)));
     }
 
-    public void start() {
+    /**
+     * Start a new server interface using the given bindAddress. The JWebServer instance will start listening to incoming
+     * connections on the given bind address and port.
+     * The resulting interface can be retrieved using {@link #getInterfaceByAddress(InetSocketAddress)} and stopped using
+     * {@link #stop(ServerInterface)} or by stopping all interfaces using {@link #stop()}
+     * @param bindAddress address to bind to
+     */
+    public void start(final InetSocketAddress bindAddress) {
         try {
             HttpServer server = new com.bethibande.web.tcp.HttpServer();
             server.bind(bindAddress, 100);
@@ -833,27 +872,36 @@ public class JWebServer {
         }
     }
 
-    public void start(HttpServer server) {
-        if(isAlive()) stop();
-
-        this.server = server;
+    /**
+     * This will wrap the given HttpServer instance in a ServerInterface and start listening for incoming
+     * connections/requests on the given server.
+     * The resulting interface can be retrieved using {@link #getInterfaceByAddress(InetSocketAddress)} and stopped using
+     * {@link #stop(ServerInterface)} or by stopping all interfaces using {@link #stop()}
+     * @param server server to wrap
+     */
+    public void start(final HttpServer server) {
+        this.interfaces.add(new ServerInterface(this, server.getAddress(), server));
         server.setExecutor(executor);
         server.start();
 
-        this.sessionCache = cacheSupplier.getSessionCache(
-                this,
-                cacheConfig
-        );
+        if(this.sessionCache == null) {
+            this.sessionCache = cacheSupplier.getSessionCache(
+                    this,
+                    cacheConfig
+            );
+        }
 
-        this.globalRequestCache = cacheSupplier.getRequestCache(
-                this,
-                cacheConfig,
-                CacheType.GLOBAL_REQUEST_CACHE
-        );
+        if(this.globalRequestCache == null) {
+            this.globalRequestCache = cacheSupplier.getRequestCache(
+                    this,
+                    cacheConfig,
+                    CacheType.GLOBAL_REQUEST_CACHE
+            );
+        }
 
         server.createContext("/", new HttpHandler(this));
 
-        logger.info(String.format("%s started on %s", annotate("JWebAPI Server", BLUE + BOLD), annotate(bindAddress.toString().substring(1), MAGENTA)));
+        logger.info(String.format("%s started on %s", annotate("JWebAPI Interface", BLUE + BOLD), annotate(server.getAddress().toString().substring(1), MAGENTA)));
     }
 
 }

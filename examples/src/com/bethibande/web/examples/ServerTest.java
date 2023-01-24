@@ -16,7 +16,6 @@ public class ServerTest {
 
         JWebServer jWebServer = new JWebServer()
                 .withLogLevel(Level.ALL)
-                .withBindAddress(5544)
                 .withMethodInvocationHandler(new SecuredAnnotationProcessor())
                 .autoLoad(ServerTest.class)
                 .withContextFactory(SecuredContext::new);

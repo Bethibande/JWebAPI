@@ -7,6 +7,7 @@ import com.bethibande.web.examples.beans.ServiceBean;
 import com.bethibande.web.examples.permission.SecuredHandler;
 import com.bethibande.web.response.RequestResponse;
 
+import java.net.InetSocketAddress;
 import java.util.logging.Level;
 
 public class Main {
@@ -14,8 +15,7 @@ public class Main {
     public static void main(String[] args) {
         JWebServer server = new JWebServer()
                 .withLogLevel(Level.FINE)
-                .withLogLevel(Level.ALL) /* Uncomment this line to see full debug info */
-                .withBindAddress(5544)
+                //.withLogLevel(Level.ALL) /* Uncomment this line to see full debug info */
                 .withMethodInvocationHandler(new SecuredAnnotationProcessor())
                 .withHandler(TestHandler.class)
                 .withHandler(SecuredHandler.class)
@@ -23,7 +23,8 @@ public class Main {
                 .withContextFactory(SecuredContext::new);
 
         server.storeGlobalBean(new ServiceBean());
-        server.start();
+        server.start(new InetSocketAddress("127.0.0.1", 5544)); // binding to ipv4 loopback address
+        server.start(new InetSocketAddress("::1", 5544)); // binding to ipv6 loopback address
     }
 
     public static void handleError(final Throwable th, final ServerContext context) {
