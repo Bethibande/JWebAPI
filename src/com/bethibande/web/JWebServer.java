@@ -697,69 +697,120 @@ public class JWebServer {
         return this;
     }
 
+    /**
+     * Register a new writer for a given type.
+     * @param type type of objects the writer can write
+     * @param writer writer class
+     */
     public void registerWriter(Class<?> type, Class<? extends OutputWriter> writer) {
         logger.config(String.format("Register Writer > %s for type %s", writer.getName(), type.getName()));
         writers.remove(type);
         writers.put(type, writer);
     }
 
+    /**
+     * Register a new request handler
+     * @return the current server instance
+     */
     public JWebServer withHandler(Class<?> handler) {
         registerHandlerClass(handler);
         return this;
     }
 
+    /**
+     * Register a new parameter processor, used to fill method parameters
+     * @param processor the processor to register
+     * @return the current server instance
+     */
     @SuppressWarnings("unused")
     public JWebServer withProcessor(ParameterProcessor processor) {
         registerProcessor(processor);
         return this;
     }
 
+    /**
+     * Register a new output handler, transforms returned objects into types an OutputWriter can write.
+     * For example turning objects into a json string
+     * @return the current server instance
+     */
     @SuppressWarnings("unused")
     public <T> JWebServer withOutputHandler(Class<T> type, OutputHandler<T> handler) {
         registerOutputHandler(type, handler);
         return this;
     }
 
+    /**
+     * Register a new output handler, transforms returned objects into types an OutputWriter can write.
+     * For example turning objects into a json string
+     */
     public <T> void registerOutputHandler(Class<T> type, OutputHandler<T> handler) {
         logger.config(String.format("Register OutputHandler > %s for type %s", handler.getClass().getName(), type.getName()));
         outputHandlers.put(type, handler);
     }
 
+    /**
+     * Get an output handler that can handle a certain type of object.
+     * @return an OutputHandler that can handle the given type of object, may be null.
+     */
     @SuppressWarnings("unchecked")
     public <T> OutputHandler<T> getOutputHandler(Class<T> type) {
         return (OutputHandler<T>) outputHandlers.get(type);
     }
 
+    /**
+     * Get all OutputHandlers and the types of objects they can handle
+     */
     @SuppressWarnings("unused")
     public HashMap<Class<?>, OutputHandler<?>> getOutputHandlers() {
         return outputHandlers;
     }
 
+    /**
+     * Register a ParameterProcessor. ParameterProcessors are used to fill method and constructor parameters
+     */
     public void registerProcessor(ParameterProcessor processor) {
         logger.config(String.format("Register ParameterProcessor > %s", processor.getClass().getName()));
         processors.add(processor);
     }
 
+    /**
+     * Register a method with a given name in a given class and a given signature as a request handler,
+     * The given method will still need the URI annotation. An exception will be thrown if there is no such method.
+     * @return the current server instance
+     * @throws RuntimeException exception wrapping NoSuchMethodException
+     */
     @SuppressWarnings("unused")
     public JWebServer withMethod(Class<?> clazz, String methodName, Class<?>... methodSignature) {
         registerMethod(clazz, methodName, methodSignature);
         return this;
     }
 
+    /**
+     * Register a given method as a request handler
+     * @return the current server instance
+     */
     @SuppressWarnings("unused")
     public JWebServer withMethod(Method method) {
         registerMethod(method);
         return this;
     }
 
+    /**
+     * Register a method with a given name in a given class and a given signature as a request handler,
+     * The given method will still need the URI annotation. An exception will be thrown if there is no such method.
+     * @throws RuntimeException exception wrapping NoSuchMethodException
+     */
     public void registerMethod(Class<?> clazz, String methodName, Class<?>... methodSignature) {
         try {
             registerMethod(clazz.getDeclaredMethod(methodName, methodSignature));
         } catch(NoSuchMethodException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
+    /**
+     * Register a given method as a request handler.
+     */
     public void registerMethod(Method method) {
         final URI uri = method.getAnnotation(URI.class);
         final ProcessorMappings mappings = ProcessorMappings.of(method, this);
@@ -776,6 +827,11 @@ public class JWebServer {
         this.methods.searchInsert(URIObject::priority, URIObject.of(uri), methodHandler);
     }
 
+    /**
+     * Register a class as a handler, this will register all methods annotated with the URI annotation
+     * within the given class as request handlers.
+     * @see #registerMethod(Method)
+     */
     public void registerHandlerClass(Class<?> handler) {
         logger.config(String.format("Register Class > %s", handler.getName()));
         for(Method method : handler.getDeclaredMethods()) {
@@ -785,23 +841,39 @@ public class JWebServer {
         }
     }
 
+    /**
+     * Get the internal session cache
+     */
     @SuppressWarnings("unused")
     public Cache<UUID, Session> getSessionCache() {
         return sessionCache;
     }
 
+    /**
+     * Get the global request cache
+     */
     public Cache<String, CachedRequest> getGlobalRequestCache() {
         return globalRequestCache;
     }
 
+    /**
+     * Get all parameter processors
+     */
     public List<ParameterProcessor> getProcessors() {
         return processors;
     }
 
+    /**
+     * Get all request handlers and their uris
+     */
     public SimpleMap<URIObject, MethodHandler> getMethods() {
         return methods;
     }
 
+    /**
+     * Returns true if there are any running server interfaces.
+     * @return !interfaces.isEmpty()
+     */
     public boolean isAlive() {
         return !interfaces.isEmpty();
     }
