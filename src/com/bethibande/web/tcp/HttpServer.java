@@ -81,7 +81,7 @@ public class HttpServer extends com.sun.net.httpserver.HttpServer {
                 headers.add(split[0], split[1]);
             }
 
-            HttpExchange exchange = new HttpExchange(client, method, URI.create(uri), version, headers);
+            HttpExchange exchange = new HttpExchange(client, this, method, URI.create(uri), version, headers);
 
             for(Map.Entry<String, HttpHandler> entry : contexts.entrySet()) {
                 if(uri.toLowerCase().startsWith(Optional.ofNullable(entry.getKey()).map(String::toLowerCase).orElse(null))) {

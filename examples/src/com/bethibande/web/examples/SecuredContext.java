@@ -1,6 +1,7 @@
 package com.bethibande.web.examples;
 
 import com.bethibande.web.JWebServer;
+import com.bethibande.web.types.ServerInterface;
 import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.context.ServerContext;
 import com.bethibande.web.examples.permission.PermissionScope;
@@ -11,8 +12,11 @@ import com.bethibande.web.sessions.Session;
 @SuppressWarnings("unused")
 public class SecuredContext extends ServerContext {
 
-    public SecuredContext(JWebServer server, Session session, WebRequest request) {
-        super(server, session, request);
+    public SecuredContext(final JWebServer server,
+                          final ServerInterface serverInterface,
+                          final Session session,
+                          final WebRequest request) {
+        super(server, serverInterface, session, request);
     }
 
     public void loadPermissions(PermissionScope scope) {

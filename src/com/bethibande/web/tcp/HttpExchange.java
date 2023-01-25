@@ -3,6 +3,7 @@ package com.bethibande.web.tcp;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpPrincipal;
+import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,6 +18,7 @@ import java.util.Map;
 public class HttpExchange extends com.sun.net.httpserver.HttpExchange {
 
     private final Socket owner;
+    private final com.bethibande.web.tcp.HttpContext context;
 
     private final String method;
     private final URI uri;
@@ -27,8 +29,14 @@ public class HttpExchange extends com.sun.net.httpserver.HttpExchange {
 
     private int responseCode = -1;
 
-    public HttpExchange(Socket owner, String method, URI uri, String version, Headers requestHeaders) {
+    public HttpExchange(final Socket owner,
+                        final HttpServer server,
+                        final String method,
+                        final URI uri,
+                        final String version,
+                        final Headers requestHeaders) {
         this.owner = owner;
+        this.context = new com.bethibande.web.tcp.HttpContext(server);
         this.method = method;
         this.uri = uri;
         this.version = version;

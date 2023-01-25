@@ -4,6 +4,7 @@ import com.bethibande.web.JWebServer;
 import com.bethibande.web.context.LocalServerContext;
 import com.bethibande.web.context.ServerContext;
 import com.bethibande.web.timings.TimingGenerator;
+import com.bethibande.web.types.ServerInterface;
 import com.bethibande.web.types.URIObject;
 import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.handlers.MethodHandler;
@@ -37,12 +38,14 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
         timingGenerator.start(7);
         try {
             final WebRequest request = new WebRequest(owner, exchange);
+            final ServerInterface _interface = owner.getInterfaceByAddress(exchange.getHttpContext().getServer().getAddress());
 
             Session session = owner.getSession(exchange.getRemoteAddress().getAddress());
             if(session == null) session = owner.generateSession(exchange.getRemoteAddress().getAddress());
 
             final ServerContext context = owner.getContextFactory().createContext(
                     owner,
+                    _interface,
                     session,
                     request
             );

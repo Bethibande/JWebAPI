@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("unused")
 @AutoLoad
-public class TestHandler {
+public class SecuredHandler {
 
     @URI(value = "/", type = URI.URIType.STRING, priority = Integer.MIN_VALUE)
     public RequestResponse notFoundHandler() {

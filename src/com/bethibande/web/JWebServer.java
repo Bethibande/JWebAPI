@@ -82,7 +82,7 @@ import static com.bethibande.web.logging.ConsoleColors.*;
 public class JWebServer {
 
     private ScheduledThreadPoolExecutor executor;
-    private final List<ServerInterface> interfaces = new ArrayList<>();
+    private final HashMap<InetSocketAddress, ServerInterface> interfaces = new HashMap<>();
 
     private Logger logger;
 
@@ -387,11 +387,11 @@ public class JWebServer {
 
         for(Class<?> clazz : classes) {
             if(ParameterProcessor.class.isAssignableFrom(clazz)) {
-                registerProcessor(ReflectUtils.autoWireNewInstance((Class<? extends ParameterProcessor>) clazz, new ServerContext(this, null, null)));
+                registerProcessor(ReflectUtils.autoWireNewInstance((Class<? extends ParameterProcessor>) clazz, new ServerContext(this, null, null, null)));
                 continue;
             }
             if(MethodInvocationHandler.class.isAssignableFrom(clazz)) {
-                registerMethodInvocationHandler(ReflectUtils.autoWireNewInstance((Class<? extends MethodInvocationHandler>) clazz, new ServerContext(this, null, null)));
+                registerMethodInvocationHandler(ReflectUtils.autoWireNewInstance((Class<? extends MethodInvocationHandler>) clazz, new ServerContext(this, null, null, null)));
                 continue;
             }
 
@@ -415,11 +415,11 @@ public class JWebServer {
 
         for(Class<?> clazz : classes) {
             if(ParameterProcessor.class.isAssignableFrom(clazz)) {
-                registerProcessor(ReflectUtils.autoWireNewInstance((Class<? extends ParameterProcessor>) clazz, new ServerContext(this, null, null)));
+                registerProcessor(ReflectUtils.autoWireNewInstance((Class<? extends ParameterProcessor>) clazz, new ServerContext(this,  null,null, null)));
                 continue;
             }
             if(MethodInvocationHandler.class.isAssignableFrom(clazz)) {
-                registerMethodInvocationHandler(ReflectUtils.autoWireNewInstance((Class<? extends MethodInvocationHandler>) clazz, new ServerContext(this, null, null)));
+                registerMethodInvocationHandler(ReflectUtils.autoWireNewInstance((Class<? extends MethodInvocationHandler>) clazz, new ServerContext(this, null, null, null)));
                 continue;
             }
 
@@ -882,7 +882,7 @@ public class JWebServer {
      * Gets all server interfaces the server is listening on
      */
     public List<ServerInterface> getInterfaces() {
-        return List.copyOf(interfaces);
+        return List.copyOf(interfaces.values());
     }
 
     /**
@@ -892,7 +892,7 @@ public class JWebServer {
     public @Nullable ServerInterface getInterfaceByAddress(final InetSocketAddress address) {
         if(address == null) return null;
 
-        return interfaces.stream().filter(it -> it.address().equals(address)).findFirst().orElse(null);
+        return interfaces.get(address);
     }
 
     /**
@@ -903,7 +903,7 @@ public class JWebServer {
      */
     public void stop(final ServerInterface _interface) {
         _interface.server().stop(0);
-        interfaces.remove(_interface);
+        interfaces.remove(_interface.address());
         logger.info(String.format(
                 "%s stopped %s",
                 annotate("JWebAPI Interface", BLUE + BOLD),
@@ -917,7 +917,7 @@ public class JWebServer {
      * allowing them to be collected by garbage collection.
      */
     public void stop() {
-        interfaces.forEach(this::stop);
+        interfaces.forEach((k, v) -> this.stop(v));
 
         interfaces.clear();
 
@@ -952,7 +952,7 @@ public class JWebServer {
      * @param server server to wrap
      */
     public void start(final HttpServer server) {
-        this.interfaces.add(new ServerInterface(this, server.getAddress(), server));
+        this.interfaces.put(server.getAddress(), new ServerInterface(this, server.getAddress(), server));
         server.setExecutor(executor);
         server.start();
 

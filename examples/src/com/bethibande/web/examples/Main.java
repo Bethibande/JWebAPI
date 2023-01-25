@@ -4,7 +4,6 @@ import com.bethibande.web.JWebServer;
 import com.bethibande.web.context.ServerContext;
 import com.bethibande.web.examples.annotations.SecuredAnnotationProcessor;
 import com.bethibande.web.examples.beans.ServiceBean;
-import com.bethibande.web.examples.permission.SecuredHandler;
 import com.bethibande.web.response.RequestResponse;
 
 import java.net.InetSocketAddress;
@@ -17,8 +16,8 @@ public class Main {
                 .withLogLevel(Level.FINE)
                 //.withLogLevel(Level.ALL) /* Uncomment this line to see full debug info */
                 .withMethodInvocationHandler(new SecuredAnnotationProcessor())
-                .withHandler(TestHandler.class)
                 .withHandler(SecuredHandler.class)
+                .withHandler(com.bethibande.web.examples.permission.SecuredHandler.class)
                 .withErrorHandler(Main::handleError)
                 .withContextFactory(SecuredContext::new);
 
