@@ -1,6 +1,7 @@
 package com.bethibande.web.logging;
 
 import com.bethibande.web.JWebServer;
+import com.bethibande.web.types.HasExecutor;
 
 import java.util.logging.Logger;
 
@@ -15,7 +16,7 @@ public class LoggerFactory {
      * Finer - Request timings
      * Finest - Cache Updates, methods being registered [...]
      */
-    public static Logger createLogger(final JWebServer owner) {
+    public static Logger createLogger(final HasExecutor owner) {
         return new ApiLogger(owner, null, null);
     }
 }

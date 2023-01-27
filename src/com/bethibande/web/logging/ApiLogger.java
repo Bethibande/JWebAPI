@@ -1,6 +1,7 @@
 package com.bethibande.web.logging;
 
 import com.bethibande.web.JWebServer;
+import com.bethibande.web.types.HasExecutor;
 
 import java.util.logging.Logger;
 
@@ -8,9 +9,9 @@ public class ApiLogger extends Logger {
 
     private LogStyle style = new BasicStyle();
 
-    private final JWebServer owner;
+    private final HasExecutor owner;
 
-    public ApiLogger(final JWebServer owner, final String name, final String resourceBundleName) {
+    public ApiLogger(final HasExecutor owner, final String name, final String resourceBundleName) {
         super(name, resourceBundleName);
         this.owner = owner;
 
@@ -18,7 +19,7 @@ public class ApiLogger extends Logger {
         addHandler(new LogHandler(this));
     }
 
-    public JWebServer getOwner() {
+    public HasExecutor getOwner() {
         return owner;
     }
 

@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -55,6 +56,8 @@ public class RequestResponse {
 
     private Charset charset = StandardCharsets.UTF_8;
 
+    private HttpURLConnection connection;
+
     /**
      * Can handle <br>
      * String <br>
@@ -63,6 +66,24 @@ public class RequestResponse {
      * Object, will be serialized as json text
      */
     private Object contentData;
+
+    /**
+     * Used to terminate pending http client connection.
+     * Method silently returns if connection is null
+     * @see #withConnection(HttpURLConnection)
+     */
+    public void disconnect() {
+        if(connection == null) return;
+    }
+
+    /**
+     * Set the connection that generated the response, only used to client responses.
+     * @see #disconnect()
+     */
+    public RequestResponse withConnection(final HttpURLConnection connection) {
+        this.connection = connection;
+        return this;
+    }
 
     /**
      * @see #setCookie(String, String, long)
