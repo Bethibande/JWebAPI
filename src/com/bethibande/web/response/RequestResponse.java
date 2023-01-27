@@ -69,11 +69,14 @@ public class RequestResponse {
 
     /**
      * Used to terminate pending http client connection.
-     * Method silently returns if connection is null
+     * Method silently returns if connection is null.
+     * Sets the connection to null
      * @see #withConnection(HttpURLConnection)
      */
     public void disconnect() {
         if(connection == null) return;
+        connection.disconnect();
+        connection = null;
     }
 
     /**

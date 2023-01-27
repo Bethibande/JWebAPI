@@ -65,7 +65,7 @@ public class HttpExchange extends com.sun.net.httpserver.HttpExchange {
 
     @Override
     public HttpContext getHttpContext() {
-        return null;
+        return context;
     }
 
     @Override

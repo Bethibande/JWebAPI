@@ -42,6 +42,7 @@ import com.bethibande.web.response.InputStreamWrapper;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
 import com.bethibande.web.types.CacheType;
+import com.bethibande.web.types.HasExecutor;
 import com.bethibande.web.types.ServerInterface;
 import com.bethibande.web.types.ProcessorMappings;
 import com.bethibande.web.types.ServerCacheConfig;
@@ -68,6 +69,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
@@ -79,9 +81,9 @@ import static com.bethibande.web.logging.ConsoleColors.*;
  * This class represents a Http or Https Server.<br>
  * This class uses the java HttpServer or alternatively HttpsServer classes to create and run a http server. <br>
  */
-public class JWebServer {
+public class JWebServer implements HasExecutor {
 
-    private ScheduledThreadPoolExecutor executor;
+    private ThreadPoolExecutor executor;
     private final HashMap<InetSocketAddress, ServerInterface> interfaces = new HashMap<>();
 
     private Logger logger;
@@ -292,31 +294,33 @@ public class JWebServer {
 
     /**
      * Set the executor used by the server.
-     * @see #setExecutor(ScheduledThreadPoolExecutor)
+     * @see #setExecutor(ThreadPoolExecutor)
      * @see #getExecutor()
      */
     @SuppressWarnings("unused")
-    public JWebServer withExecutor(ScheduledThreadPoolExecutor executor) {
+    public JWebServer withExecutor(ThreadPoolExecutor executor) {
         setExecutor(executor);
         return this;
     }
 
     /**
      * Set the executor used by the server.
-     * @see #withExecutor(ScheduledThreadPoolExecutor)
+     * @see #withExecutor(ThreadPoolExecutor)
      * @see #getExecutor()
      */
-    public void setExecutor(ScheduledThreadPoolExecutor executor) {
+    @Override
+    public void setExecutor(ThreadPoolExecutor executor) {
         this.executor = executor;
     }
 
     /**
      * Get the executor used by the server.
-     * @see #withExecutor(ScheduledThreadPoolExecutor)
-     * @see #setExecutor(ScheduledThreadPoolExecutor)
+     * @see #withExecutor(ThreadPoolExecutor)
+     * @see #setExecutor(ThreadPoolExecutor)
      */
     @SuppressWarnings("unused")
-    public ScheduledThreadPoolExecutor getExecutor() {
+    @Override
+    public ThreadPoolExecutor getExecutor() {
         return this.executor;
     }
 

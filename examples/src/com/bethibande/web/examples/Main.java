@@ -16,7 +16,7 @@ public class Main {
                 .withLogLevel(Level.FINE)
                 //.withLogLevel(Level.ALL) /* Uncomment this line to see full debug info */
                 .withMethodInvocationHandler(new SecuredAnnotationProcessor())
-                .withHandler(SecuredHandler.class)
+                .withHandler(TestHandler.class)
                 .withHandler(com.bethibande.web.examples.permission.SecuredHandler.class)
                 .withErrorHandler(Main::handleError)
                 .withContextFactory(SecuredContext::new);
