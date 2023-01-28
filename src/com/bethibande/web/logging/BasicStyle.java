@@ -9,7 +9,7 @@ import java.util.logging.LogRecord;
 
 public class BasicStyle implements LogStyle {
 
-    public static final DateTimeFormatter FORMATTER = new DateTimeFormatterBuilder().appendPattern("dd MMM yyyy mm:HH").toFormatter();
+    public static final DateTimeFormatter FORMATTER = new DateTimeFormatterBuilder().appendPattern("dd MMM yyyy HH:mm").toFormatter();
     public static final String STRING_FORMAT = "%s [%s] %s %s" + ConsoleColors.RESET;
 
     @Override
