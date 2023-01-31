@@ -10,6 +10,8 @@ public class JsonWriter implements RequestWriter {
 
     private final byte[] data;
 
+    private boolean state = true;
+
     public JsonWriter(final String json, final Charset charset) {
         this(json.getBytes(charset));
     }
@@ -23,24 +25,19 @@ public class JsonWriter implements RequestWriter {
         return data.length;
     }
 
-    /**
-     * @throws UnsupportedOperationException always throws this exception, class does not support reset operation.
-     */
     @Override
     public void reset() {
-        throw new UnsupportedOperationException("Operation not supported by json writer");
+        state = true;
     }
 
-    /**
-     * Always returns false. Class always writes all data in one go
-     */
     @Override
     public boolean hasNext() {
-        return false;
+        return state;
     }
 
     @Override
     public void write(final OutputStream stream, final int bufferSize) throws IOException {
         stream.write(data);
+        state = false;
     }
 }
