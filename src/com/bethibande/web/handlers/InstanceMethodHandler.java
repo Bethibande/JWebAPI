@@ -24,7 +24,7 @@ public class InstanceMethodHandler extends MethodHandler {
     @Override
     public RequestResponse invoke(ServerContext context) {
         final WebRequest request = context.request();
-        final JWebServer server = context.server();
+        final JWebServer server = context.api();
         final Method method = getMethod();
 
         for(MethodInvocationHandler handler : server.getMethodInvocationHandlers()) {

@@ -9,7 +9,7 @@ public class ConsoleColors {
     public static final String YELLOW = "\u001b[33m";
     public static final String BLUE = "\u001b[34m";
     public static final String MAGENTA = "\u001b[35m";
-    public static final String ORANGE = "\u001b[36m";
+    public static final String CYAN = "\u001b[36m";
     public static final String WHITE = "\u001b[37m";
 
     public static final String BACKGROUND_BLACK = "\u001b[40m";

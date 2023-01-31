@@ -37,12 +37,11 @@ import com.bethibande.web.processors.impl.QueryFieldAnnotationProcessor;
 import com.bethibande.web.processors.impl.RemoteAddressAnnotationProcessor;
 import com.bethibande.web.processors.impl.ServerContextParameterProcessor;
 import com.bethibande.web.processors.impl.SessionParameterProcessor;
-import com.bethibande.web.processors.impl.URIAnnotationProcessor;
+import com.bethibande.web.processors.impl.URIAnnotationHandler;
 import com.bethibande.web.response.InputStreamWrapper;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
 import com.bethibande.web.types.CacheType;
-import com.bethibande.web.types.HasExecutor;
 import com.bethibande.web.types.ServerInterface;
 import com.bethibande.web.types.ProcessorMappings;
 import com.bethibande.web.types.ServerCacheConfig;
@@ -81,7 +80,7 @@ import static com.bethibande.web.logging.ConsoleColors.*;
  * This class represents a Http or Https Server.<br>
  * This class uses the java HttpServer or alternatively HttpsServer classes to create and run a http server. <br>
  */
-public class JWebServer implements HasExecutor {
+public class JWebServer implements JWebAPI {
 
     private ThreadPoolExecutor executor;
     private final HashMap<InetSocketAddress, ServerInterface> interfaces = new HashMap<>();
@@ -149,7 +148,7 @@ public class JWebServer implements HasExecutor {
 
         setCacheSupplier(new DefaultCacheSupplierImpl(Cache::new, Cache::new));
 
-        registerMethodInvocationHandler(new URIAnnotationProcessor());
+        registerMethodInvocationHandler(new URIAnnotationHandler());
         registerMethodInvocationHandler(new CachedRequestHandler());
         registerMethodInvocationHandler(new BeanHandler());
 
@@ -338,6 +337,7 @@ public class JWebServer implements HasExecutor {
      * Set the logger instance used by the server
      * @see #getLogger()
      */
+    @Override
     public void setLogger(Logger logger) {
         this.logger = logger;
     }
@@ -346,6 +346,7 @@ public class JWebServer implements HasExecutor {
      * Get the logger instance used by the server
      * @see #setLogger(Logger)
      */
+    @Override
     public Logger getLogger() {
         return this.logger;
     }
@@ -439,6 +440,7 @@ public class JWebServer implements HasExecutor {
      * @see com.bethibande.web.annotations.JsonField
      */
     @SuppressWarnings("unused")
+    @Override
     public void setGson(Gson gson) {
         this.gson = gson;
     }
@@ -447,6 +449,7 @@ public class JWebServer implements HasExecutor {
      * Get the globally used gson instance
      * @see #setGson(Gson)
      */
+    @Override
     public Gson getGson() {
         return gson;
     }
@@ -479,6 +482,7 @@ public class JWebServer implements HasExecutor {
      * @param charset default value is UTF-8
      * @see #withCharset(Charset)
      */
+    @Override
     public void setCharset(Charset charset) {
         logger.config(String.format("Update Charset %s > %s", this.charset.displayName(), charset.displayName()));
         this.charset = charset;
@@ -508,6 +512,7 @@ public class JWebServer implements HasExecutor {
      * @return default value is UTF-8
      * @see #setCharset(Charset)
      */
+    @Override
     public Charset getCharset() {
         return charset;
     }
@@ -570,6 +575,7 @@ public class JWebServer implements HasExecutor {
      * @return the current JWebServer instance, used for chaining methods.
      * @see #registerMethodInvocationHandler(MethodInvocationHandler)
      */
+    @Override
     public JWebServer withMethodInvocationHandler(MethodInvocationHandler handler) {
         registerMethodInvocationHandler(handler);
         return this;
@@ -578,6 +584,7 @@ public class JWebServer implements HasExecutor {
     /**
      * Register an invocation handler, fired before and after invoking a method.
      */
+    @Override
     public void registerMethodInvocationHandler(MethodInvocationHandler handler) {
         logger.config(String.format("Register MethodInvocationHandler > %s", handler.getClass().getName()));
         methodInvocationHandlers.add(handler);
@@ -587,6 +594,7 @@ public class JWebServer implements HasExecutor {
      * Get all registered method invocation handlers
      * @see #registerMethodInvocationHandler(MethodInvocationHandler)
      */
+    @Override
     public List<MethodInvocationHandler> getMethodInvocationHandlers() {
         return methodInvocationHandlers;
     }
@@ -669,7 +677,7 @@ public class JWebServer implements HasExecutor {
 
         sessionCache.put(session.getSessionId(), session);
 
-        logger.fine(String.format("Create Session > %s %s", annotate(session.getSessionId().toString(), ORANGE), annotate(owner.getHostAddress(), BLUE)));
+        logger.fine(String.format("Create Session > %s %s", annotate(session.getSessionId().toString(), CYAN), annotate(owner.getHostAddress(), BLUE)));
 
         return session;
     }
@@ -856,7 +864,8 @@ public class JWebServer implements HasExecutor {
     /**
      * Get the global request cache
      */
-    public Cache<String, CachedRequest> getGlobalRequestCache() {
+    @Override
+    public Cache<String, CachedRequest> getRequestCache() {
         return globalRequestCache;
     }
 

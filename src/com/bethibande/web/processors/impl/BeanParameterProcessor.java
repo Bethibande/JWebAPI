@@ -20,7 +20,7 @@ public class BeanParameterProcessor extends FilteredParameterProcessor {
     @Override
     @SuppressWarnings("unchecked")
     public Object process(ServerContext context, Executable executable, Parameter parameter) {
-        if(context.server() == null) return null;
+        if(context.api() == null) return null;
 
         Session session = context.session();
         MetaData meta = session.getMeta();

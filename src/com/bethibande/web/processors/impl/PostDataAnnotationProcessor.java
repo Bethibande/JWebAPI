@@ -19,7 +19,7 @@ public class PostDataAnnotationProcessor extends AnnotationProcessor<PostData> {
     @Override
     public Object accept(ServerContext context, PostData annotation, Executable executable, Parameter parameter) {
         final WebRequest request = context.request();
-        final JWebServer server = context.server();
+        final JWebServer server = context.api();
 
         final String json = IOUtils.readString(
                 request.getExchange().getRequestBody(),

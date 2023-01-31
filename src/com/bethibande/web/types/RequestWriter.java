@@ -1,5 +1,6 @@
 package com.bethibande.web.types;
 
+import java.io.IOException;
 import java.io.OutputStream;
 
 public interface RequestWriter {
@@ -23,6 +24,6 @@ public interface RequestWriter {
     /**
      * Write data to the given OutputStream. Writer should not write more data than the bufferSize allows.
      */
-    void write(final OutputStream stream, final int bufferSize);
+    void write(final OutputStream stream, final int bufferSize) throws IOException;
 
 }

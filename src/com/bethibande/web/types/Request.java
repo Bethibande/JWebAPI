@@ -4,6 +4,7 @@ import com.sun.net.httpserver.Headers;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 
 public class Request {
@@ -13,27 +14,39 @@ public class Request {
      * @throws RuntimeException wrapping {@link MalformedURLException}
      */
     public static Request ofString(final String url, final RequestMethod method) {
-        try {
-            return new Request(new URL(url), new Headers(), method, null);
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        }
+        return new Request(URI.create(url), new Headers(), method, null);
     }
 
-    private URL url;
+    private URI uri;
     private Headers headers;
     private RequestMethod method;
     private @Nullable RequestWriter writer;
+    private Object responseData;
 
-    public Request(final URL url, final Headers headers, final RequestMethod method, @Nullable final RequestWriter writer) {
-        this.url = url;
+    public Request(final URI uri,
+                   final Headers headers,
+                   final RequestMethod method,
+                   final @Nullable RequestWriter writer) {
+        this.uri = uri;
         this.headers = headers;
         this.method = method;
         this.writer = writer;
     }
 
-    public Request withUrl(final URL url) {
-        setUrl(url);
+    public Request(final URI uri,
+                   final Headers headers,
+                   final RequestMethod method,
+                   final @Nullable RequestWriter writer,
+                   final Object responseData) {
+        this.uri = uri;
+        this.headers = headers;
+        this.method = method;
+        this.writer = writer;
+        this.responseData = responseData;
+    }
+
+    public Request withUri(final URI uri) {
+        setUri(uri);
         return this;
     }
 
@@ -52,8 +65,17 @@ public class Request {
         return this;
     }
 
-    public void setUrl(final URL url) {
-        this.url = url;
+    public Request withResponseData(final Object responseData) {
+        setResponseData(responseData);
+        return this;
+    }
+
+    public void setResponseData(final Object responseData) {
+        this.responseData = responseData;
+    }
+
+    public void setUri(final URI uri) {
+        this.uri = uri;
     }
 
     public void setHeaders(final Headers headers) {
@@ -68,8 +90,8 @@ public class Request {
         this.writer = writer;
     }
 
-    public URL url() {
-        return url;
+    public URI uri() {
+        return uri;
     }
 
     public Headers headers() {
@@ -83,4 +105,9 @@ public class Request {
     public RequestWriter writer() {
         return writer;
     }
+
+    public Object responseData() {
+        return responseData;
+    }
+
 }

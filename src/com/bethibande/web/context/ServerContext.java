@@ -1,11 +1,12 @@
 package com.bethibande.web.context;
 
+import com.bethibande.web.JWebAPI;
 import com.bethibande.web.JWebServer;
 import com.bethibande.web.types.ServerInterface;
 import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.sessions.Session;
 
-public class ServerContext {
+public class ServerContext implements IContext {
 
     private final JWebServer server;
     private final ServerInterface serverInterface;
@@ -24,7 +25,8 @@ public class ServerContext {
         this.metaData.setCharset(server.getCharset());
     }
 
-    public JWebServer server() {
+    @Override
+    public JWebServer api() {
         return server;
     }
 
@@ -36,6 +38,7 @@ public class ServerContext {
         return session;
     }
 
+    @Override
     public WebRequest request() {
         return request;
     }

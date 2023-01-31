@@ -1,5 +1,6 @@
 package com.bethibande.web.cache;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Range;
 
 import java.util.*;
@@ -22,6 +23,7 @@ public class Cache<K, V> {
      * @param config the config to load
      * @return the current cache instance
      */
+    @Contract("_->this")
     public Cache<K, V> apply(CacheConfig config) {
         this.maxItems = config.getMaxItems();
         this.maxLifetime = config.getMaxLifetime();

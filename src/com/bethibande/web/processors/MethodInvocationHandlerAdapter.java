@@ -1,15 +1,15 @@
 package com.bethibande.web.processors;
 
-import com.bethibande.web.JWebServer;
-import com.bethibande.web.types.WebRequest;
+import com.bethibande.web.JWebAPI;
+import com.bethibande.web.types.Request;
 
 import java.lang.reflect.Method;
 
 public class MethodInvocationHandlerAdapter implements MethodInvocationHandler {
 
     @Override
-    public void beforeInvocation(Method method, WebRequest request, JWebServer server) { }
+    public void beforeInvocation(Method method, Request request, JWebAPI api) { }
 
     @Override
-    public void afterInvocation(Method method, WebRequest request, JWebServer server) { }
+    public void afterInvocation(Method method, Request request, JWebAPI api) { }
 }

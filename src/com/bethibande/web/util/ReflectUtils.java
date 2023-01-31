@@ -20,7 +20,7 @@ public class ReflectUtils {
         Object[] values = new Object[parameters.length];
         ProcessorMappings mappings = ReflectUtils.mappings.get(type);
         if(mappings == null) {
-            mappings = ProcessorMappings.of(constructor, context.server());
+            mappings = ProcessorMappings.of(constructor, context.api());
             ReflectUtils.mappings.put(type, mappings);
         }
 

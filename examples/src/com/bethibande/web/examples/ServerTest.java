@@ -1,7 +1,7 @@
 package com.bethibande.web.examples;
 
 import com.bethibande.web.JWebServer;
-import com.bethibande.web.examples.annotations.SecuredAnnotationProcessor;
+import com.bethibande.web.examples.annotations.SecuredAnnotationHandler;
 import com.bethibande.web.tcp.HttpServer;
 
 import java.io.IOException;
@@ -16,7 +16,7 @@ public class ServerTest {
 
         JWebServer jWebServer = new JWebServer()
                 .withLogLevel(Level.ALL)
-                .withMethodInvocationHandler(new SecuredAnnotationProcessor())
+                .withMethodInvocationHandler(new SecuredAnnotationHandler())
                 .autoLoad(ServerTest.class)
                 .withContextFactory(SecuredContext::new);
 

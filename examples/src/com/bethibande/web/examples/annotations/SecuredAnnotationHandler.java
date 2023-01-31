@@ -1,5 +1,6 @@
 package com.bethibande.web.examples.annotations;
 
+import com.bethibande.web.JWebAPI;
 import com.bethibande.web.JWebServer;
 import com.bethibande.web.context.LocalServerContext;
 import com.bethibande.web.context.ServerContext;
@@ -7,18 +8,21 @@ import com.bethibande.web.examples.Message;
 import com.bethibande.web.examples.SecuredContext;
 import com.bethibande.web.processors.AnnotatedInvocationHandler;
 import com.bethibande.web.response.RequestResponse;
+import com.bethibande.web.types.Request;
 import com.bethibande.web.types.WebRequest;
 
 import java.lang.reflect.Method;
 
-public class SecuredAnnotationProcessor extends AnnotatedInvocationHandler<SecuredEntry> {
+public class SecuredAnnotationHandler extends AnnotatedInvocationHandler<SecuredEntry> {
 
-    public SecuredAnnotationProcessor() {
+    public SecuredAnnotationHandler() {
         super(SecuredEntry.class);
     }
 
     @Override
-    public void beforeInvocation(Method method, SecuredEntry annotation, WebRequest request, JWebServer server) {
+    public void beforeInvocation(Method method, SecuredEntry annotation, Request _request, JWebAPI api) {
+        if(!(_request instanceof WebRequest request)) throw new RuntimeException("Not supported");
+
         ServerContext context = LocalServerContext.getContext();
         if(!(context instanceof SecuredContext securedContext)) return;
 
@@ -33,5 +37,5 @@ public class SecuredAnnotationProcessor extends AnnotatedInvocationHandler<Secur
     }
 
     @Override
-    public void afterInvocation(Method method, SecuredEntry annotation, WebRequest request, JWebServer server) { }
+    public void afterInvocation(Method method, SecuredEntry annotation, Request request, JWebAPI server) { }
 }

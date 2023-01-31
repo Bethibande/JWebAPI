@@ -1,10 +1,22 @@
 package com.bethibande.web;
 
+import com.bethibande.web.cache.Cache;
+import com.bethibande.web.cache.CacheConfig;
+import com.bethibande.web.cache.CacheLifetimeType;
+import com.bethibande.web.cache.CachedRequest;
+import com.bethibande.web.handlers.client.ClientHandler;
 import com.bethibande.web.logging.LoggerFactory;
+import com.bethibande.web.processors.MethodInvocationHandler;
+import com.bethibande.web.processors.client.ClientParameterProcessor;
+import com.bethibande.web.processors.client.ClientProcessorConsumer;
+import com.bethibande.web.processors.client.PostDataProcessor;
+import com.bethibande.web.processors.impl.CachedRequestHandler;
+import com.bethibande.web.processors.impl.URIAnnotationHandler;
+import com.bethibande.web.readers.JsonReader;
 import com.bethibande.web.response.InputStreamWrapper;
 import com.bethibande.web.response.RequestResponse;
-import com.bethibande.web.types.HasExecutor;
 import com.bethibande.web.types.Request;
+import com.bethibande.web.types.ResponseReader;
 import com.google.gson.Gson;
 import com.sun.net.httpserver.Headers;
 import org.jetbrains.annotations.Contract;
@@ -15,29 +27,44 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class JWebClient implements HasExecutor {
+public class JWebClient implements JWebAPI {
 
     private ThreadPoolExecutor executor;
     private Logger logger;
 
-    private String baseUrl;
+    private URL baseUrl;
     private int bufferSize = 1024;
     private Charset charset = StandardCharsets.UTF_8;
     private Gson gson = new Gson();
 
     private final HashMap<Class<?>, WeakReference<Object>> repositories = new HashMap<>();
+
+    private final List<MethodInvocationHandler> invocationHandlers = new ArrayList<>();
+
+    private Cache<String, CachedRequest> requestCache;
+    private CacheConfig cacheConfig;
+
+    private final HashMap<Class<?>, ResponseReader> readers = new HashMap<>();
+
+    private final List<ClientParameterProcessor> processors = new ArrayList<>();
 
     public JWebClient() {
         this.init();
@@ -46,8 +73,118 @@ public class JWebClient implements HasExecutor {
     private void init() {
         executor = new ThreadPoolExecutor(1, 5, 60000L, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(1000));
         logger = LoggerFactory.createLogger(this);
+        logger.setLevel(Level.ALL);
+
+        cacheConfig = new CacheConfig(
+                CacheLifetimeType.ON_CREATION,
+                TimeUnit.SECONDS.toMillis(10),
+                100,
+                TimeUnit.SECONDS.toMillis(2)
+        );
+
+        requestCache = new Cache<>();
+        requestCache.apply(cacheConfig);
+
+        registerMethodInvocationHandler(new URIAnnotationHandler());
+        registerMethodInvocationHandler(new CachedRequestHandler());
+
+        registerProcessor(new PostDataProcessor());
+
+        registerReader(Object.class, new JsonReader(this));
     }
 
+    /**
+     * Register a new processor used to infer repository parameters
+     * @return current client instance
+     */
+    @Contract("_->this")
+    public JWebClient withProcessor(final ClientParameterProcessor processor) {
+        registerProcessor(processor);
+        return this;
+    }
+
+    /**
+     * Register a new processor used to infer repository parameters
+     */
+    public void registerProcessor(final ClientParameterProcessor processor) {
+        processors.add(processor);
+        logger.config(String.format("Registered processor > %s", processor.getClass().getName()));
+    }
+
+    /**
+     * List of processors used to infer repository parameters
+     */
+    public List<ClientParameterProcessor> getProcessors() {
+        return processors;
+    }
+
+    /**
+     * Used to destroy a client instance.
+     * Shuts down the thread-pool-executor
+     */
+    public void destroy() {
+        executor.shutdown();
+    }
+
+    /**
+     * Register a new response reader, used to read server responses and turn them into the required java types
+     * @return current client instance
+     */
+    public JWebClient withReader(final Class<?> type, final ResponseReader reader) {
+        registerReader(type, reader);
+        return this;
+    }
+
+    /**
+     * Register a new response reader, used to read server responses and turn them into the required java types
+     */
+    public void registerReader(final Class<?> type, final ResponseReader reader) {
+        readers.put(type, reader);
+        logger.config(String.format("Registered response reader > %s for type %s",reader.getClass().getName(), type.getTypeName()));
+    }
+
+    /**
+     * Get all response readers, used to read server responses and turn them into the required java types
+     */
+    public HashMap<Class<?>, ResponseReader> getReaders() {
+        return readers;
+    }
+
+    /**
+     * Get request cache, used by CachedRequest annotation to cache request responses
+     */
+    @Override
+    public Cache<String, CachedRequest> getRequestCache() {
+        return requestCache;
+    }
+
+    /**
+     * Register a new method invocation handler used to handle repository method invocations
+     * @return current client instance
+     */
+    @Override
+    @Contract("_->this")
+    public JWebAPI withMethodInvocationHandler(final MethodInvocationHandler handler) {
+        registerMethodInvocationHandler(handler);
+        return this;
+    }
+
+    /**
+     * Register a new method invocation handler used to handle repository method invocations
+     */
+    @Override
+    public void registerMethodInvocationHandler(final MethodInvocationHandler handler) {
+        this.invocationHandlers.add(handler);
+        logger.config(String.format("Registered invocation handler > %s", handler.getClass().getName()));
+    }
+
+    /**
+     * Get all method invocation handlers used to handle repository method invocations
+     */
+    @Override
+    public List<MethodInvocationHandler> getMethodInvocationHandlers() {
+        return invocationHandlers;
+    }
 
     /**
      * Set the gson instance used by the client
@@ -66,6 +203,7 @@ public class JWebClient implements HasExecutor {
      * @see #getGson()
      * @see #withGson(Gson)
      */
+    @Override
     public void setGson(final Gson gson) {
         this.gson = gson;
         this.logger.config("Update gson instance");
@@ -76,6 +214,7 @@ public class JWebClient implements HasExecutor {
      * @see #setGson(Gson)
      * @see #withGson(Gson)
      */
+    @Override
     public Gson getGson() {
         return gson;
     }
@@ -93,6 +232,7 @@ public class JWebClient implements HasExecutor {
     /**
      * Set the charset used by the client, default is UTF-8
      */
+    @Override
     public void setCharset(final Charset charset) {
         this.logger.config(String.format("Update charset %s > %s", this.charset.name(), charset.name()));
         this.charset = charset;
@@ -101,6 +241,7 @@ public class JWebClient implements HasExecutor {
     /**
      * Get the charset used by the client, default is UTF-8
      */
+    @Override
     public Charset getCharset() {
         return this.charset;
     }
@@ -136,17 +277,32 @@ public class JWebClient implements HasExecutor {
     /**
      * Set the base url, used by repository classes
      * @param baseUrl must be http or https url
+     * @return current client instance
+     */
+    @Contract("_->this")
+    public JWebClient withBaseUrl(final String baseUrl) {
+        setBaseUrl(baseUrl);
+        return this;
+    }
+
+    /**
+     * Set the base url, used by repository classes
+     * @param baseUrl must be http or https url
      */
     public void setBaseUrl(final String baseUrl) {
         if(!baseUrl.toLowerCase().matches("http(s?)://.+")) throw new RuntimeException("Must be http or https url");
-        this.baseUrl = baseUrl;
+        try {
+            this.baseUrl = new URL(baseUrl);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
         logger.config(String.format("Set base url > %s", baseUrl));
     }
 
     /**
      * Get the base url used by repository classes
      */
-    public String getBaseUrl() {
+    public URL getBaseUrl() {
         if(baseUrl == null) throw new RuntimeException("No base url has been set.");
         return baseUrl;
     }
@@ -174,7 +330,9 @@ public class JWebClient implements HasExecutor {
      */
     @SuppressWarnings("unchecked")
     public <T> T withRepository(final Class<T> type) {
-        final InvocationHandler handler = null; // TODO: create invocation handler
+        if(!Modifier.isInterface(type.getModifiers())) throw new RuntimeException("Only interfaces allowed here.");
+
+        final InvocationHandler handler = new ClientHandler(this);
         final T instance = (T) Proxy.newProxyInstance(type.getClassLoader(), new Class[]{type}, handler);
         repositories.put(type, new WeakReference<>(instance));
 
@@ -221,6 +379,7 @@ public class JWebClient implements HasExecutor {
     /**
      * Set the Logger instance used by the client
      */
+    @Override
     public void setLogger(final @NotNull Logger logger) {
         this.logger = logger;
         logger.config(String.format("Set Logger > %s", logger.getClass().getName()));
@@ -229,6 +388,7 @@ public class JWebClient implements HasExecutor {
     /**
      * Get Logger instance used by the client
      */
+    @Override
     public Logger getLogger() {
         return logger;
     }
@@ -300,12 +460,16 @@ public class JWebClient implements HasExecutor {
      * Send a http or https request.
      * The response data will contain a InputStreamWrapper instance to read the received data from.
      * If the response content length is 0, this method will close the connection automatically, otherwise the connection
-     * will have to be terminated manually using {@link RequestResponse#disconnect()}
+     * will have to be terminated manually using {@link RequestResponse#disconnect()}.
+     * If the request uri is not absolute (for example "/test"), this method will concatenate it with the clients base url,
+     * <b>request url = baseUrl + uri</b> <br>
      * Important: call {@link RequestResponse#disconnect()} to close the connection, if response content length != 0
      */
     public RequestResponse sendRequest(final Request request) {
         try {
-            final HttpURLConnection connection = (HttpURLConnection) request.url().openConnection();
+            final URL url = request.uri().isAbsolute() ? request.uri().toURL(): new URL(baseUrl, request.uri().toString());
+
+            final HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod(request.method().name().toUpperCase());
             connection.setDoOutput(request.writer() != null && request.writer().getLength() > 0);
             connection.setUseCaches(false);
@@ -318,9 +482,9 @@ public class JWebClient implements HasExecutor {
             });
 
             if(request.writer() != null) {
-                connection.getRequestProperties().put(
+                connection.setRequestProperty(
                         "Content-Length",
-                        List.of(String.valueOf(request.writer().getLength()))
+                        String.valueOf(request.writer().getLength())
                 );
             }
             connection.connect();

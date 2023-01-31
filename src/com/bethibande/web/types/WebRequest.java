@@ -8,7 +8,7 @@ import com.sun.net.httpserver.HttpExchange;
 import java.lang.reflect.Method;
 import java.net.URI;
 
-public class WebRequest {
+public class WebRequest extends Request {
 
     private final URI uri;
     private final Headers requestHeaders;
@@ -25,7 +25,13 @@ public class WebRequest {
 
     private QueryMap queryMap;
 
-    public WebRequest(JWebServer server, HttpExchange exchange) {
+    public WebRequest(final JWebServer server, final HttpExchange exchange) {
+        super(
+                exchange.getRequestURI(),
+                exchange.getRequestHeaders(),
+                RequestMethod.valueOf(exchange.getRequestMethod()),
+                null
+        );
         this.server = server;
         this.exchange = exchange;
 

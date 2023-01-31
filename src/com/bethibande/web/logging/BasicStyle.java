@@ -40,7 +40,7 @@ public class BasicStyle implements LogStyle {
             return ConsoleColors.MAGENTA + ConsoleColors.BOLD + "INFO   " + ConsoleColors.RESET;
         }
         if(level == Level.WARNING) {
-            return ConsoleColors.ORANGE + ConsoleColors.BOLD + levelStr + ConsoleColors.RESET;
+            return ConsoleColors.CYAN + ConsoleColors.BOLD + levelStr + ConsoleColors.RESET;
         }
         if(level == Level.SEVERE) {
             return ConsoleColors.RED + ConsoleColors.BOLD + levelStr + " " + ConsoleColors.RESET + ConsoleColors.RED;

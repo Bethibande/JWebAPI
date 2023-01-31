@@ -16,7 +16,7 @@ public class GlobalBeanParameterProcessor extends FilteredParameterProcessor {
 
     @Override
     public Object process(ServerContext context, Executable executable, Parameter parameter) {
-        return context.server().getGlobalBean((Class<? extends GlobalBean>) parameter.getType());
+        return context.api().getGlobalBean((Class<? extends GlobalBean>) parameter.getType());
     }
 
 }
