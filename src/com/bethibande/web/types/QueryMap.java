@@ -1,5 +1,7 @@
 package com.bethibande.web.types;
 
+import java.net.URLDecoder;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 
 public class QueryMap {
@@ -7,9 +9,11 @@ public class QueryMap {
     private final HashMap<String, String> query = new HashMap<>();
 
     private final String queryString;
+    private final Charset charset;
 
-    public QueryMap(String queryString) {
+    public QueryMap(final String queryString, final Charset charset) {
         this.queryString = queryString;
+        this.charset = charset;
 
         parseMap();
     }
@@ -19,8 +23,9 @@ public class QueryMap {
 
         for(String str : queryString.split("&")) {
             int index = str.indexOf('=');
-            String key = index == -1 ? str: str.substring(0, index);
+            final String key = index == -1 ? str: str.substring(0, index);
             String value = index == -1 ? null : str.substring(index+1);
+            value = URLDecoder.decode(value, charset);
 
             query.put(key, value);
         }

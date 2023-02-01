@@ -35,12 +35,6 @@ public class ClientHandler implements InvocationHandler {
             handler.beforeInvocation(method, request, owner);
         }
 
-        owner.getLogger().fine(String.format(
-                "Sending request %s %s",
-                annotate(request.method().toString(), CYAN + BOLD),
-                annotate(request.uri().toString(), RESET + GREEN)
-        ));
-
         final IContext context = new ClientContext(owner, request);
 
         int index = 0;
@@ -53,8 +47,14 @@ public class ClientHandler implements InvocationHandler {
             index++;
         }
 
+        owner.getLogger().fine(String.format(
+                "Sending request %s %s",
+                annotate(request.method().toString(), CYAN + BOLD),
+                annotate(request.uri().toString(), RESET + GREEN)
+        ));
+
         final RequestResponse response = owner.sendRequest(request);
-        final InputStream in = ((InputStreamWrapper) response.getContentData()).getStream();
+        final InputStreamWrapper in = (InputStreamWrapper) response.getContentData();
 
         ResponseReader reader = owner.getReaders().get(method.getReturnType());
         if(reader == null) reader = owner.getReaders().get(Object.class);

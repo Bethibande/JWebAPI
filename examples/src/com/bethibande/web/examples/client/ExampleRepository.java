@@ -1,6 +1,7 @@
 package com.bethibande.web.examples.client;
 
 import com.bethibande.web.annotations.PostData;
+import com.bethibande.web.annotations.QueryField;
 import com.bethibande.web.annotations.URI;
 import com.bethibande.web.examples.Message;
 import com.bethibande.web.types.RequestMethod;
@@ -15,5 +16,8 @@ public interface ExampleRepository {
 
     @URI(value = "/postMessage", methods = RequestMethod.POST)
     Message postMessage(final @PostData Message message);
+
+    @URI(value = "/textMessage", methods = RequestMethod.GET)
+    Message queryTest(final @QueryField("text") String text, final @QueryField("json") boolean json);
 
 }

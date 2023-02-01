@@ -20,7 +20,7 @@ public class ClientTest {
         System.out.println(message1.id() + " " + message1.message());*/
 
         final ExampleRepository repository = client.withRepository(ExampleRepository.class);
-        final Message message2 = repository.postMessage(new Message(23, "test message"));
+        final Message message2 = repository.queryTest("test text", true);
 
         System.out.println(message2.id() + " " + message2.message());
 

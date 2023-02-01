@@ -127,4 +127,11 @@ public class TestHandler {
                 .withLocation("/test2");
     }
 
+    @URI("/textMessage")
+    public Object textMessage(final @QueryField("json") boolean json,
+                              final @QueryField("text") String text) {
+        if(json) return new Message(200, text);
+        return text;
+    }
+
 }

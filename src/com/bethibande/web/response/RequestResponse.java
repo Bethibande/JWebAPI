@@ -252,9 +252,9 @@ public class RequestResponse {
     }
 
     public long getContentLength() {
-        List<String> values = header.get("Content-Length");
-        if(values == null || values.isEmpty()) return 0;
-        return Long.parseLong(values.get(0));
+        final String value = header.getFirst("Content-Length");
+        if(value == null) return 0;
+        return Long.parseLong(value);
     }
 
     public Object getContentData() {

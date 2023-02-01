@@ -7,8 +7,9 @@ import com.bethibande.web.cache.CachedRequest;
 import com.bethibande.web.handlers.client.ClientHandler;
 import com.bethibande.web.logging.LoggerFactory;
 import com.bethibande.web.processors.MethodInvocationHandler;
+import com.bethibande.web.processors.client.ClientHeaderProcessor;
 import com.bethibande.web.processors.client.ClientParameterProcessor;
-import com.bethibande.web.processors.client.ClientProcessorConsumer;
+import com.bethibande.web.processors.client.ClientQueryProcessor;
 import com.bethibande.web.processors.client.PostDataProcessor;
 import com.bethibande.web.processors.impl.CachedRequestHandler;
 import com.bethibande.web.processors.impl.URIAnnotationHandler;
@@ -88,6 +89,8 @@ public class JWebClient implements JWebAPI {
         registerMethodInvocationHandler(new URIAnnotationHandler());
         registerMethodInvocationHandler(new CachedRequestHandler());
 
+        registerProcessor(new ClientQueryProcessor());
+        registerProcessor(new ClientHeaderProcessor());
         registerProcessor(new PostDataProcessor());
 
         registerReader(Object.class, new JsonReader(this));

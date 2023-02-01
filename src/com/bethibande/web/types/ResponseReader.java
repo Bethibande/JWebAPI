@@ -1,10 +1,10 @@
 package com.bethibande.web.types;
 
 import com.bethibande.web.JWebAPI;
+import com.bethibande.web.response.InputStreamWrapper;
 import com.bethibande.web.response.RequestResponse;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Type;
 
 public abstract class ResponseReader {
@@ -15,8 +15,8 @@ public abstract class ResponseReader {
         this.owner = owner;
     }
 
-    public abstract Object read(final InputStream in,
-                           final RequestResponse response,
-                           final Type returnType) throws IOException;
+    public abstract Object read(final InputStreamWrapper in,
+                                final RequestResponse response,
+                                final Type returnType) throws IOException;
 
 }

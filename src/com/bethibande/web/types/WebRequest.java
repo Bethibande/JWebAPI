@@ -42,7 +42,7 @@ public class WebRequest extends Request {
     }
 
     private void parseQuery() {
-        queryMap = new QueryMap(getUri().getQuery());
+        queryMap = new QueryMap(getUri().getQuery(), server.getCharset());
     }
 
     public QueryMap getQuery() {
