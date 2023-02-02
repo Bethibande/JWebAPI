@@ -14,12 +14,6 @@ import com.bethibande.web.handlers.InstanceMethodHandler;
 import com.bethibande.web.handlers.MethodHandler;
 import com.bethibande.web.handlers.StaticMethodHandler;
 import com.bethibande.web.handlers.http.HttpHandler;
-import com.bethibande.web.handlers.out.ObjectOutputHandler;
-import com.bethibande.web.handlers.out.OutputHandler;
-import com.bethibande.web.handlers.out.RequestResponseOutputHandler;
-import com.bethibande.web.io.ByteArrayWriter;
-import com.bethibande.web.io.OutputWriter;
-import com.bethibande.web.io.StreamWriter;
 import com.bethibande.web.loader.ClassCollector;
 import com.bethibande.web.logging.LoggerFactory;
 import com.bethibande.web.processors.MethodInvocationHandler;
@@ -39,9 +33,9 @@ import com.bethibande.web.processors.impl.ServerContextParameterProcessor;
 import com.bethibande.web.processors.impl.SessionParameterProcessor;
 import com.bethibande.web.processors.impl.URIAnnotationHandler;
 import com.bethibande.web.response.InputStreamWrapper;
-import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
 import com.bethibande.web.types.CacheType;
+import com.bethibande.web.types.RequestWriter;
 import com.bethibande.web.types.ServerInterface;
 import com.bethibande.web.types.ProcessorMappings;
 import com.bethibande.web.types.ServerCacheConfig;
@@ -50,8 +44,12 @@ import com.bethibande.web.types.SimpleMap;
 import com.bethibande.web.types.URIObject;
 import com.bethibande.web.types.impl.DefaultCacheSupplierImpl;
 import com.bethibande.web.util.ReflectUtils;
+import com.bethibande.web.writers.JsonWriter;
+import com.bethibande.web.writers.StreamWriter;
+import com.bethibande.web.writers.WriterFactory;
 import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpServer;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -105,8 +103,7 @@ public class JWebServer implements JWebAPI {
 
     private final List<ParameterProcessor> processors = new ArrayList<>();
     private final SimpleMap<URIObject, MethodHandler> methods = new SimpleMap<>(URIObject.class, MethodHandler.class);
-    private final HashMap<Class<?>, OutputHandler<?>> outputHandlers = new HashMap<>();
-    private final HashMap<Class<?>, Class<? extends OutputWriter>> writers = new HashMap<>();
+    private final HashMap<Class<?>, WriterFactory<?>> writers = new HashMap<>();
     private final List<MethodInvocationHandler> methodInvocationHandlers = new ArrayList<>();
 
     private BiConsumer<Throwable, ServerContext> errorHandler = (th, ctx) -> th.printStackTrace();
@@ -164,11 +161,8 @@ public class JWebServer implements JWebAPI {
         registerProcessor(new BeanParameterProcessor());
         registerProcessor(new GlobalBeanParameterProcessor());
 
-        registerOutputHandler(Object.class, new ObjectOutputHandler());
-        registerOutputHandler(RequestResponse.class, new RequestResponseOutputHandler());
-
-        registerWriter(byte[].class, ByteArrayWriter.class);
-        registerWriter(InputStreamWrapper.class, StreamWriter.class);
+        registerWriter(Object.class, (value, api) -> new JsonWriter(api.getGson().toJson(value), api.getCharset()));
+        registerWriter(InputStreamWrapper.class, (value, api) -> new StreamWriter(value));
 
         setContextFactory(ServerContext::new);
 
@@ -187,9 +181,53 @@ public class JWebServer implements JWebAPI {
     }
 
     /**
+     * Creates a writer for a given object, if there is no writer for the given type, defaults to Object type
+     */
+    @SuppressWarnings("unchecked")
+    public <T> RequestWriter createWriter(final T value) {
+        WriterFactory<T> factory = (WriterFactory<T>) writers.get(value.getClass());
+        if(factory == null) factory = (WriterFactory<T>) writers.get(Object.class);
+
+        return factory.create(value, this);
+    }
+
+    /**
+     * Register a new writer class for a given type, the writer factory will be used to turn an object into a writer
+     * that will write the given object as the http(s) response body
+     * @param type the type of value the writer accepts
+     * @param factory a factory that turn a given object into a RequestWriter
+     * @return current server instance
+     */
+    @Contract("_,_->this")
+    public <T> JWebServer withWriter(final Class<T> type, final WriterFactory<T> factory) {
+        registerWriter(type, factory);
+        return this;
+    }
+
+    /**
+     * Register a new writer class for a given type, the writer factory will be used to turn an object into a writer
+     * that will write the given object as the http(s) response body
+     * @param type the type of value the writer accepts
+     * @param factory a factory that turn a given object into a RequestWriter
+     */
+    public <T> void registerWriter(final Class<T> type, final WriterFactory<T> factory) {
+        writers.put(type, factory);
+        logger.config(String.format("Registered writer > '%s' for type '%s'", factory.getClass().getName(), type.getName()));
+    }
+
+    /**
+     * Get a map of all types that can be written as the response body
+     * and a factory that will turn an object of the given type into a writer
+     */
+    public HashMap<Class<?>, WriterFactory<?>> getWriters() {
+        return writers;
+    }
+
+    /**
      * @see #setErrorHandler(BiConsumer)
      * @see #getErrorHandler() 
      */
+    @Contract("_->this")
     public JWebServer withErrorHandler(final BiConsumer<Throwable, ServerContext> errorHandler) {
         setErrorHandler(errorHandler);
         return this;
@@ -250,6 +288,7 @@ public class JWebServer implements JWebAPI {
      * @see #getGlobalBeanManager()
      */
     @SuppressWarnings("unused")
+    @Contract("_->this")
     public JWebServer withGlobalBeanManager(GlobalBeanManager beanManager) {
         setGlobalBeanManager(beanManager);
         return this;
@@ -297,6 +336,7 @@ public class JWebServer implements JWebAPI {
      * @see #getExecutor()
      */
     @SuppressWarnings("unused")
+    @Contract("_->this")
     public JWebServer withExecutor(ThreadPoolExecutor executor) {
         setExecutor(executor);
         return this;
@@ -328,6 +368,7 @@ public class JWebServer implements JWebAPI {
      * @see #setLogger(Logger)
      */
     @SuppressWarnings("unused")
+    @Contract("_->this")
     public JWebServer withLogger(Logger logger) {
         setLogger(logger);
         return this;
@@ -355,6 +396,7 @@ public class JWebServer implements JWebAPI {
      * Set the loggers log level
      * @see #setLogLevel(Level)
      */
+    @Contract("_->this")
     public JWebServer withLogLevel(Level level) {
         setLogLevel(level);
         return this;
@@ -386,6 +428,7 @@ public class JWebServer implements JWebAPI {
      *             A location is being loaded like this -> class.getProtectionDomain().getCodeSource().getLocation()
      */
     @SuppressWarnings({"unused","unchecked"})
+    @Contract("_,_->this")
     public JWebServer autoLoad(Class<?> root, String module) {
         ClassCollector collector = new ClassCollector();
         Collection<Class<?>> classes = collector.collect(root, module);
@@ -414,6 +457,7 @@ public class JWebServer implements JWebAPI {
      *             A location is being loaded like this -> class.getProtectionDomain().getCodeSource().getLocation()
      */
     @SuppressWarnings("unchecked")
+    @Contract("_->this")
     public JWebServer autoLoad(Class<?> root) {
         ClassCollector collector = new ClassCollector();
         Collection<Class<?>> classes = collector.collect(root, AutoLoad.class);
@@ -460,6 +504,7 @@ public class JWebServer implements JWebAPI {
      * @see #setCharset(Charset)
      */
     @SuppressWarnings("unused")
+    @Contract("_->this")
     public JWebServer withCharset(Charset charset) {
         setCharset(charset);
         return this;
@@ -472,6 +517,7 @@ public class JWebServer implements JWebAPI {
      * @see #setBufferSize(int) 
      */
     @SuppressWarnings("unused")
+    @Contract("_->this")
     public JWebServer withBufferSize(int bufferSize) {
         setBufferSize(bufferSize);
         return this;
@@ -538,6 +584,7 @@ public class JWebServer implements JWebAPI {
      * @see #setCacheSupplier(ServerCacheSupplier)
      */
     @SuppressWarnings("unused")
+    @Contract("_->this")
     public JWebServer withCacheSupplier(ServerCacheSupplier supplier) {
         setCacheSupplier(supplier);
         return this;
@@ -557,6 +604,7 @@ public class JWebServer implements JWebAPI {
      * @see #setCacheConfig(ServerCacheConfig)
      */
     @SuppressWarnings("unused")
+    @Contract("_->this")
     public JWebServer withCacheConfig(ServerCacheConfig config) {
         setCacheConfig(config);
         return this;
@@ -576,6 +624,7 @@ public class JWebServer implements JWebAPI {
      * @see #registerMethodInvocationHandler(MethodInvocationHandler)
      */
     @Override
+    @Contract("_->this")
     public JWebServer withMethodInvocationHandler(MethodInvocationHandler handler) {
         registerMethodInvocationHandler(handler);
         return this;
@@ -612,6 +661,7 @@ public class JWebServer implements JWebAPI {
      * @see #setContextFactory(ContextFactory)
      */
     @SuppressWarnings("unused")
+    @Contract("_->this")
     public JWebServer withContextFactory(ContextFactory factory) {
         setContextFactory(factory);
         return this;
@@ -683,47 +733,10 @@ public class JWebServer implements JWebAPI {
     }
 
     /**
-     * Get writer for the specified type, returns null if there isn't one.
-     */
-    public OutputWriter getWriter(Class<?> type) {
-        Class<? extends OutputWriter> writerClass = writers.get(type);
-        if(writerClass == null) return null;
-
-        return ReflectUtils.createInstance(writerClass);
-    }
-
-    /**
-     * Get a map of all writers and the types of objects they can write
-     */
-    public HashMap<Class<?>, Class<? extends OutputWriter>> getWriters() {
-        return writers;
-    }
-
-    /**
-     * Register a new writer for a certain type.
-     * @return the current JWebServer instance, used for chaining methods.
-     */
-    @SuppressWarnings("unused")
-    public JWebServer withWriter(Class<?> type, Class<? extends OutputWriter> writer) {
-        registerWriter(type, writer);
-        return this;
-    }
-
-    /**
-     * Register a new writer for a given type.
-     * @param type type of objects the writer can write
-     * @param writer writer class
-     */
-    public void registerWriter(Class<?> type, Class<? extends OutputWriter> writer) {
-        logger.config(String.format("Register Writer > %s for type %s", writer.getName(), type.getName()));
-        writers.remove(type);
-        writers.put(type, writer);
-    }
-
-    /**
      * Register a new request handler
      * @return the current server instance
      */
+    @Contract("_->this")
     public JWebServer withHandler(Class<?> handler) {
         registerHandlerClass(handler);
         return this;
@@ -735,46 +748,10 @@ public class JWebServer implements JWebAPI {
      * @return the current server instance
      */
     @SuppressWarnings("unused")
+    @Contract("_->this")
     public JWebServer withProcessor(ParameterProcessor processor) {
         registerProcessor(processor);
         return this;
-    }
-
-    /**
-     * Register a new output handler, transforms returned objects into types an OutputWriter can write.
-     * For example turning objects into a json string
-     * @return the current server instance
-     */
-    @SuppressWarnings("unused")
-    public <T> JWebServer withOutputHandler(Class<T> type, OutputHandler<T> handler) {
-        registerOutputHandler(type, handler);
-        return this;
-    }
-
-    /**
-     * Register a new output handler, transforms returned objects into types an OutputWriter can write.
-     * For example turning objects into a json string
-     */
-    public <T> void registerOutputHandler(Class<T> type, OutputHandler<T> handler) {
-        logger.config(String.format("Register OutputHandler > %s for type %s", handler.getClass().getName(), type.getName()));
-        outputHandlers.put(type, handler);
-    }
-
-    /**
-     * Get an output handler that can handle a certain type of object.
-     * @return an OutputHandler that can handle the given type of object, may be null.
-     */
-    @SuppressWarnings("unchecked")
-    public <T> OutputHandler<T> getOutputHandler(Class<T> type) {
-        return (OutputHandler<T>) outputHandlers.get(type);
-    }
-
-    /**
-     * Get all OutputHandlers and the types of objects they can handle
-     */
-    @SuppressWarnings("unused")
-    public HashMap<Class<?>, OutputHandler<?>> getOutputHandlers() {
-        return outputHandlers;
     }
 
     /**
@@ -792,6 +769,7 @@ public class JWebServer implements JWebAPI {
      * @throws RuntimeException exception wrapping NoSuchMethodException
      */
     @SuppressWarnings("unused")
+    @Contract("_,_,_->this")
     public JWebServer withMethod(Class<?> clazz, String methodName, Class<?>... methodSignature) {
         registerMethod(clazz, methodName, methodSignature);
         return this;
@@ -802,6 +780,7 @@ public class JWebServer implements JWebAPI {
      * @return the current server instance
      */
     @SuppressWarnings("unused")
+    @Contract("_->this")
     public JWebServer withMethod(Method method) {
         registerMethod(method);
         return this;

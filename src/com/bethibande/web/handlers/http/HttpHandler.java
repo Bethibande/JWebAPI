@@ -4,18 +4,18 @@ import com.bethibande.web.JWebServer;
 import com.bethibande.web.context.LocalServerContext;
 import com.bethibande.web.context.ServerContext;
 import com.bethibande.web.timings.TimingGenerator;
+import com.bethibande.web.types.RequestWriter;
 import com.bethibande.web.types.ServerInterface;
 import com.bethibande.web.types.URIObject;
 import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.handlers.MethodHandler;
-import com.bethibande.web.handlers.out.OutputHandler;
-import com.bethibande.web.io.OutputWriter;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -32,7 +32,6 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void handle(HttpExchange exchange) {
         TimingGenerator timingGenerator = new TimingGenerator();
         timingGenerator.start(7);
@@ -66,12 +65,13 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
 
                 timingGenerator.keyframe(); // invoke method keyframe
 
+                if(response.getContentData() instanceof RequestResponse res) {
+                    response = res;
+                }
 
-                while(request.getResponse().getContentData() != null && owner.getWriters().get(request.getResponse().getContentData().getClass()) == null) {
-                    OutputHandler<?> outputHandler = owner.getOutputHandler(request.getResponse().getContentData().getClass());
-                    if(outputHandler == null) outputHandler = owner.getOutputHandler(Object.class);
-
-                    ((OutputHandler<Object>) outputHandler).update(request.getResponse().getContentData(), request);
+                final RequestWriter writer = response.getContentData() == null ? null: owner.createWriter(response.getContentData());
+                if(writer != null) {
+                    response.setContentLength(writer.getLength());
                 }
 
                 response = request.getResponse();
@@ -88,9 +88,16 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
                 timingGenerator.keyframe(); // send header keyframe
 
                 if(response.getContentLength() > 0) {
-                    OutputWriter writer = owner.getWriter(response.getContentData().getClass());
                     if(writer == null) throw new RuntimeException("There is no writer for the type: '" + response.getContentData().getClass() + "'!");
-                    writer.write(request, response);
+
+                    final OutputStream out = exchange.getResponseBody();
+                    final int bufferSize = owner.getBufferSize();
+
+                    while(writer.hasNext()) {
+                        writer.write(out, bufferSize);
+                        out.flush();
+                    }
+                    writer.reset();
                 }
 
                 timingGenerator.keyframe(); // writing keyframe
@@ -120,12 +127,13 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
 
         RequestResponse response = context.request().getResponse();
 
+        if(response.getContentData() instanceof RequestResponse res) {
+            response = res;
+        }
 
-        while(response.getContentData() != null && owner.getWriters().get(response.getContentData().getClass()) == null) {
-            OutputHandler<?> outputHandler = owner.getOutputHandler(response.getContentData().getClass());
-            if(outputHandler == null) outputHandler = owner.getOutputHandler(Object.class);
-
-            ((OutputHandler<Object>) outputHandler).update(response.getContentData(), context.request());
+        final RequestWriter writer = response.getContentData() == null ? null: owner.createWriter(response.getContentData());
+        if(writer != null) {
+            response.setContentLength(writer.getLength());
         }
 
         final HttpExchange exchange = context.request().getExchange();
@@ -138,9 +146,16 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
             exchange.sendResponseHeaders(response.getStatusCode(), response.getContentLength());
 
             if(response.getContentLength() > 0) {
-                OutputWriter writer = owner.getWriter(response.getContentData().getClass());
                 if(writer == null) throw new RuntimeException("There is no writer for the type: '" + response.getContentData().getClass() + "'!");
-                writer.write(context.request(), response);
+
+                final OutputStream out = exchange.getResponseBody();
+                final int bufferSize = owner.getBufferSize();
+
+                while(writer.hasNext()) {
+                    writer.write(out, bufferSize);
+                    out.flush();
+                }
+                writer.reset();
             }
 
             exchange.close();
