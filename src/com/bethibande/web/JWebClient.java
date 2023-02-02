@@ -14,6 +14,7 @@ import com.bethibande.web.processors.client.PostDataProcessor;
 import com.bethibande.web.processors.impl.CachedRequestHandler;
 import com.bethibande.web.processors.impl.URIAnnotationHandler;
 import com.bethibande.web.readers.JsonReader;
+import com.bethibande.web.readers.StreamReader;
 import com.bethibande.web.response.InputStreamWrapper;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.types.Request;
@@ -94,6 +95,8 @@ public class JWebClient implements JWebAPI {
         registerProcessor(new PostDataProcessor());
 
         registerReader(Object.class, new JsonReader(this));
+        registerReader(InputStream.class, new StreamReader(this));
+        registerReader(InputStreamWrapper.class, new StreamReader(this));
     }
 
     /**
