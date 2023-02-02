@@ -20,15 +20,15 @@ public class ClientTest {
         System.out.println(message1.id() + " " + message1.message());*/
 
         final ExampleRepository repository = client.withRepository(ExampleRepository.class);
-        final Message message2 = repository.queryTest("test text", true);
+        /*final Message message2 = repository.queryTest("test text", true);
 
-        System.out.println(message2.id() + " " + message2.message());
+        System.out.println(message2.id() + " " + message2.message());*/
 
-        /*final long start = System.currentTimeMillis();
+        final long start = System.currentTimeMillis();
         for(int i = 0; i < 10000; i++) {
             repository.count();
         }
-        System.out.println(System.currentTimeMillis() - start);*/
+        System.out.println(System.currentTimeMillis() - start);
 
         /*final long start = System.currentTimeMillis();
         for(int i = 0; i < 10_000; i++) {

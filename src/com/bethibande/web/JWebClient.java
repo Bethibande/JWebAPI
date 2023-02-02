@@ -34,7 +34,6 @@ import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -47,8 +46,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@SuppressWarnings("unused")
 public class JWebClient implements JWebAPI {
 
+    /**
+     * Executor needed for logging
+     */
     private ThreadPoolExecutor executor;
     private Logger logger;
 
@@ -73,7 +76,7 @@ public class JWebClient implements JWebAPI {
     }
 
     private void init() {
-        executor = new ThreadPoolExecutor(1, 5, 60000L, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(1000));
+        executor = new ThreadPoolExecutor(1, 1, 60000L, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(1000));
         logger = LoggerFactory.createLogger(this);
         logger.setLevel(Level.ALL);
 
@@ -333,12 +336,13 @@ public class JWebClient implements JWebAPI {
      * Creates an instance of your repository class. A repository class is an interface.
      * Additionally, this stores a reference to the instance that can be retrieved using {@link #getRepository(Class)}.
      * This reference is a WeakReference to prevent memory leaks.
+     * Note, parameter processors registered after calling this method, will not be applied to the resulting repository.
      */
     @SuppressWarnings("unchecked")
     public <T> T withRepository(final Class<T> type) {
         if(!Modifier.isInterface(type.getModifiers())) throw new RuntimeException("Only interfaces allowed here.");
 
-        final InvocationHandler handler = new ClientHandler(this);
+        final InvocationHandler handler = new ClientHandler(this, type);
         final T instance = (T) Proxy.newProxyInstance(type.getClassLoader(), new Class[]{type}, handler);
         repositories.put(type, new WeakReference<>(instance));
 
