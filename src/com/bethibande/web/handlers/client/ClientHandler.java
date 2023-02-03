@@ -58,6 +58,7 @@ public class ClientHandler implements InvocationHandler {
         final ClientParameterProcessor[] processors = parameterMappings.get(method).processors();
 
         for(int i = 0; i < parameters.length; i++) {
+            if(processors[i] == null) continue;
             processors[i].function().apply(context, parameters[i], args[i]);
         }
 
