@@ -5,7 +5,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
 
 public class Request {
 
@@ -17,11 +16,11 @@ public class Request {
         return new Request(URI.create(url), new Headers(), method, null);
     }
 
-    private URI uri;
-    private Headers headers;
-    private RequestMethod method;
-    private @Nullable RequestWriter writer;
-    private Object responseData;
+    protected URI uri;
+    protected Headers headers;
+    protected RequestMethod method;
+    protected @Nullable RequestWriter writer;
+    protected Object responseData;
 
     public Request(final URI uri,
                    final Headers headers,

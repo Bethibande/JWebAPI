@@ -4,14 +4,12 @@ import com.bethibande.web.JWebServer;
 import com.bethibande.web.response.RequestResponse;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
+import org.jetbrains.annotations.Contract;
 
 import java.lang.reflect.Method;
 import java.net.URI;
 
 public class WebRequest extends Request {
-
-    private final URI uri;
-    private final Headers requestHeaders;
 
     private final JWebServer server;
     private final HttpExchange exchange;
@@ -37,8 +35,25 @@ public class WebRequest extends Request {
 
         this.response = new RequestResponse();
         this.response.setCharset(server.getCharset());
-        this.uri = exchange.getRequestURI();
-        this.requestHeaders = exchange.getRequestHeaders();
+        super.uri = exchange.getRequestURI();
+        super.headers = exchange.getRequestHeaders();
+    }
+
+    @Override
+    public Object responseData() {
+        return response.getContentData();
+    }
+
+    @Override
+    @Contract("_->this")
+    public Request withResponseData(final Object responseData) {
+        setResponseData(responseData);
+        return this;
+    }
+
+    @Override
+    public void setResponseData(final Object responseData) {
+        response.setContentData(responseData);
     }
 
     private void parseQuery() {
@@ -52,10 +67,6 @@ public class WebRequest extends Request {
 
     public JWebServer getServer() {
         return server;
-    }
-
-    public void setParameter(int i, Object value) {
-        methodInvocationParameters[i] = value;
     }
 
     public void setResponse(RequestResponse response) {
@@ -76,11 +87,11 @@ public class WebRequest extends Request {
     }
 
     public URI getUri() {
-        return uri;
+        return super.uri;
     }
 
     public Headers getRequestHeaders() {
-        return requestHeaders;
+        return super.headers;
     }
 
     public long getContentLength() {

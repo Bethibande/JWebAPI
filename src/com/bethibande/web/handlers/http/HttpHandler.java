@@ -33,7 +33,7 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) {
-        TimingGenerator timingGenerator = new TimingGenerator();
+        final TimingGenerator timingGenerator = new TimingGenerator();
         timingGenerator.start(7);
         try {
             final WebRequest request = new WebRequest(owner, exchange);
@@ -57,7 +57,7 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
                 if(!uri.isApplicable(request.getUri().getPath())) continue;
                 timingGenerator.keyframe(); // find uri keyframe
 
-                MethodHandler handler = owner.getMethods().get(uri);
+                final MethodHandler handler = owner.getMethods().get(uri);
 
                 request.setMethod(handler.getMethod());
                 RequestResponse response = handler.invoke(context);
@@ -78,7 +78,7 @@ public class HttpHandler implements com.sun.net.httpserver.HttpHandler {
 
                 timingGenerator.keyframe(); // handle return value keyframe
 
-                Headers responseHeader = exchange.getResponseHeaders();
+                final Headers responseHeader = exchange.getResponseHeaders();
                 responseHeader.putAll(response.getHeader());
                 responseHeader.set("Connection", "close");
                 responseHeader.set("Access-Control-Allow-Origin", "*");
