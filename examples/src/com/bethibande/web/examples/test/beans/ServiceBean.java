@@ -1,4 +1,4 @@
-package com.bethibande.web.examples.beans;
+package com.bethibande.web.examples.test.beans;
 
 import com.bethibande.web.annotations.PostConstruct;
 import com.bethibande.web.beans.GlobalBean;

@@ -1,4 +1,4 @@
-package com.bethibande.web.examples.permission;
+package com.bethibande.web.examples.test.permission;
 
 public enum Permissions {
 

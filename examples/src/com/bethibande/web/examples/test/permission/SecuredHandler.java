@@ -1,12 +1,12 @@
-package com.bethibande.web.examples.permission;
+package com.bethibande.web.examples.test.permission;
 
 import com.bethibande.web.annotations.AutoLoad;
 import com.bethibande.web.annotations.Path;
 import com.bethibande.web.annotations.QueryField;
 import com.bethibande.web.annotations.URI;
-import com.bethibande.web.examples.Message;
-import com.bethibande.web.examples.SecuredContext;
-import com.bethibande.web.examples.annotations.SecuredEntry;
+import com.bethibande.web.examples.test.Message;
+import com.bethibande.web.examples.test.SecuredContext;
+import com.bethibande.web.examples.test.annotations.SecuredEntry;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
 

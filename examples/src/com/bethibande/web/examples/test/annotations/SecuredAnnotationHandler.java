@@ -1,11 +1,10 @@
-package com.bethibande.web.examples.annotations;
+package com.bethibande.web.examples.test.annotations;
 
 import com.bethibande.web.JWebAPI;
-import com.bethibande.web.JWebServer;
 import com.bethibande.web.context.LocalServerContext;
 import com.bethibande.web.context.ServerContext;
-import com.bethibande.web.examples.Message;
-import com.bethibande.web.examples.SecuredContext;
+import com.bethibande.web.examples.test.Message;
+import com.bethibande.web.examples.test.SecuredContext;
 import com.bethibande.web.processors.AnnotatedInvocationHandler;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.types.Request;

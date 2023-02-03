@@ -1,10 +1,7 @@
-package com.bethibande.web.examples;
+package com.bethibande.web.examples.test;
 
 import com.bethibande.web.JWebClient;
-import com.bethibande.web.examples.client.ExampleRepository;
-import com.bethibande.web.response.RequestResponse;
-import com.bethibande.web.types.Request;
-import com.bethibande.web.types.RequestMethod;
+import com.bethibande.web.examples.test.client.ExampleRepository;
 
 import java.util.logging.Level;
 

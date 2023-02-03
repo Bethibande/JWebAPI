@@ -14,7 +14,6 @@ import com.bethibande.web.types.ResponseReader;
 import com.sun.net.httpserver.Headers;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;

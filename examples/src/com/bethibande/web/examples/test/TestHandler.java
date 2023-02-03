@@ -1,7 +1,7 @@
-package com.bethibande.web.examples;
+package com.bethibande.web.examples.test;
 
 import com.bethibande.web.annotations.*;
-import com.bethibande.web.examples.beans.TestBean;
+import com.bethibande.web.examples.test.beans.TestBean;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
 import com.bethibande.web.types.RequestMethod;
