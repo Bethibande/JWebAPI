@@ -78,7 +78,7 @@ public class JWebClient implements JWebAPI {
     private void init() {
         executor = new ThreadPoolExecutor(1, 1, 60000L, TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(1000));
         logger = LoggerFactory.createLogger(this);
-        logger.setLevel(Level.ALL);
+        logger.setLevel(Level.OFF);
 
         cacheConfig = new CacheConfig(
                 CacheLifetimeType.ON_CREATION,
@@ -100,6 +100,35 @@ public class JWebClient implements JWebAPI {
         registerReader(Object.class, new JsonReader(this));
         registerReader(InputStream.class, new StreamReader(this));
         registerReader(InputStreamWrapper.class, new StreamReader(this));
+
+        logger.setLevel(Level.INFO);
+    }
+
+    /**
+     * Change the loggers log level
+     * @return current client instance
+     */
+    @Contract("_->this")
+    public JWebClient withLogLevel(final Level level) {
+        setLogLevel(level);
+        return this;
+    }
+
+    /**
+     * Change the loggers log level
+     */
+    public void setLogLevel(final Level level) {
+        final Level old = logger.getLevel();
+        logger.setLevel(level);
+
+        logger.config(String.format("Update log level %s > %s", old.getName(), level.getName()));
+    }
+
+    /**
+     * Get the loggers log level
+     */
+    public Level getLogLevel() {
+        return logger.getLevel();
     }
 
     /**
@@ -345,6 +374,8 @@ public class JWebClient implements JWebAPI {
         final InvocationHandler handler = new ClientHandler(this, type);
         final T instance = (T) Proxy.newProxyInstance(type.getClassLoader(), new Class[]{type}, handler);
         repositories.put(type, new WeakReference<>(instance));
+
+        logger.config(String.format("Registered repository > %s", type.getName()));
 
         return instance;
     }

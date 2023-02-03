@@ -6,10 +6,13 @@ import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.types.Request;
 import com.bethibande.web.types.RequestMethod;
 
+import java.util.logging.Level;
+
 public class ClientTest {
 
     public static void main(final String[] args) {
         final JWebClient client = new JWebClient()
+                .withLogLevel(Level.CONFIG)
                 .withBaseUrl("http://127.0.0.1:5544");
 
         /*final Message message1 = (Message) client.getJson(
@@ -28,7 +31,7 @@ public class ClientTest {
         for(int i = 0; i < 10000; i++) {
             repository.count();
         }
-        System.out.println(System.currentTimeMillis() - start);
+        System.out.println("took: " + (System.currentTimeMillis() - start) + " ms");
 
         /*final long start = System.currentTimeMillis();
         for(int i = 0; i < 10_000; i++) {
