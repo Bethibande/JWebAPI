@@ -15,14 +15,17 @@ public class InstanceMethodHandler extends MethodHandler {
 
     private final Object instance;
 
-    public InstanceMethodHandler(Method method, ProcessorMappings mappings) {
-        super(method, mappings);
+    public InstanceMethodHandler(final Method method, final ProcessorMappings mappings, final JWebServer server) {
+        super(method, mappings, server);
 
-        this.instance = ReflectUtils.createInstance(method.getDeclaringClass());
+        this.instance = ReflectUtils.autoWireNewInstance(
+                method.getDeclaringClass(),
+                server.getContextFactory().createContext(server, null, null, null)
+        );
     }
 
     @Override
-    public RequestResponse invoke(ServerContext context) {
+    public RequestResponse invoke(final ServerContext context) {
         final WebRequest request = context.request();
         final JWebServer server = context.api();
         final Method method = getMethod();
