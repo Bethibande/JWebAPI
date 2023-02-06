@@ -1,11 +1,11 @@
-package com.bethibande.web.examples;
+package com.bethibande.web.examples.test;
 
 import com.bethibande.web.JWebServer;
 import com.bethibande.web.types.ServerInterface;
 import com.bethibande.web.types.WebRequest;
 import com.bethibande.web.context.ServerContext;
-import com.bethibande.web.examples.permission.PermissionScope;
-import com.bethibande.web.examples.permission.Permissions;
+import com.bethibande.web.examples.test.permission.PermissionScope;
+import com.bethibande.web.examples.test.permission.Permissions;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.sessions.Session;
 

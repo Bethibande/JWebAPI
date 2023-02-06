@@ -12,12 +12,12 @@ import java.lang.reflect.Method;
 
 public class StaticMethodHandler extends MethodHandler {
 
-    public StaticMethodHandler(Method method, ProcessorMappings mappings) {
-        super(method, mappings);
+    public StaticMethodHandler(final Method method, final ProcessorMappings mappings, final JWebServer server) {
+        super(method, mappings, server);
     }
 
     @Override
-    public RequestResponse invoke(ServerContext context) {
+    public RequestResponse invoke(final ServerContext context) {
         final WebRequest request = context.request();
         final JWebServer server = context.api();
         final Method method = getMethod();

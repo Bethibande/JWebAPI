@@ -1,4 +1,4 @@
-package com.bethibande.web.examples;
+package com.bethibande.web.examples.test;
 
 @SuppressWarnings("unused")
 public record Message(int id, String message) {

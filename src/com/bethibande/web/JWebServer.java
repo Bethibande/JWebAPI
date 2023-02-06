@@ -811,9 +811,9 @@ public class JWebServer implements JWebAPI {
 
         final MethodHandler methodHandler;
         if(Modifier.isStatic(method.getModifiers())) {
-            methodHandler = new StaticMethodHandler(method, mappings);
+            methodHandler = new StaticMethodHandler(method, mappings, this);
         } else {
-            methodHandler = new InstanceMethodHandler(method, mappings);
+            methodHandler = new InstanceMethodHandler(method, mappings, this);
         }
 
         this.methods.searchInsert(URIObject::priority, URIObject.of(uri), methodHandler);

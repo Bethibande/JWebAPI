@@ -1,4 +1,4 @@
-# JWebAPI 2.1.5
+# JWebAPI 2.2-PRE
 A simple framework for easy creation of simple http servers/clients<br>
 <br>
 ### Please note that the current v2 version is not yet stable, code of the 1.1.1 version can be found [here](https://github.com/Bethibande/JWebAPI/tree/v1.1.1)
@@ -28,7 +28,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'de.bethibande:jwebapi:2.1.5'
+    implementation 'de.bethibande:jwebapi:2.2-PRE'
 }
 ```
 ### Maven
@@ -41,7 +41,7 @@ dependencies {
 <dependency>
     <groupId>de.bethibande</groupId>
     <artifactId>jwebapi</artifactId>
-    <version>2.1.5</version>
+    <version>2.2-PRE</version>
 </dependency>
 ```
 

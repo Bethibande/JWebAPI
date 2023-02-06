@@ -1,7 +1,7 @@
-package com.bethibande.web.examples.annotations;
+package com.bethibande.web.examples.test.annotations;
 
-import com.bethibande.web.examples.permission.Access;
-import com.bethibande.web.examples.permission.Permissions;
+import com.bethibande.web.examples.test.permission.Access;
+import com.bethibande.web.examples.test.permission.Permissions;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

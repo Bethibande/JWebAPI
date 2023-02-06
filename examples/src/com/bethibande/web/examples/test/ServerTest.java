@@ -1,7 +1,7 @@
-package com.bethibande.web.examples;
+package com.bethibande.web.examples.test;
 
 import com.bethibande.web.JWebServer;
-import com.bethibande.web.examples.annotations.SecuredAnnotationHandler;
+import com.bethibande.web.examples.test.annotations.SecuredAnnotationHandler;
 import com.bethibande.web.tcp.HttpServer;
 
 import java.io.IOException;

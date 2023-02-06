@@ -1,9 +1,9 @@
-package com.bethibande.web.examples.client;
+package com.bethibande.web.examples.test.client;
 
 import com.bethibande.web.annotations.PostData;
 import com.bethibande.web.annotations.QueryField;
 import com.bethibande.web.annotations.URI;
-import com.bethibande.web.examples.Message;
+import com.bethibande.web.examples.test.Message;
 import com.bethibande.web.types.RequestMethod;
 
 public interface ExampleRepository {

@@ -15,6 +15,7 @@ import com.bethibande.web.processors.impl.CachedRequestHandler;
 import com.bethibande.web.processors.impl.URIAnnotationHandler;
 import com.bethibande.web.readers.JsonReader;
 import com.bethibande.web.readers.StreamReader;
+import com.bethibande.web.repository.Repository;
 import com.bethibande.web.response.InputStreamWrapper;
 import com.bethibande.web.response.RequestResponse;
 import com.bethibande.web.types.Request;
@@ -369,7 +370,7 @@ public class JWebClient implements JWebAPI {
      * Note, parameter processors registered after calling this method, will not be applied to the resulting repository.
      */
     @SuppressWarnings("unchecked")
-    public <T> T withRepository(final Class<T> type) {
+    public <T extends Repository> T withRepository(final Class<T> type) {
         if(!Modifier.isInterface(type.getModifiers())) throw new RuntimeException("Only interfaces allowed here.");
 
         final InvocationHandler handler = new ClientHandler(this, type);
