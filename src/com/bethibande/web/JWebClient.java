@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -52,7 +53,7 @@ public class JWebClient implements JWebAPI {
     /**
      * Executor needed for logging
      */
-    private ThreadPoolExecutor executor;
+    private ExecutorService executor;
     private Logger logger;
 
     private URL baseUrl;
@@ -381,29 +382,29 @@ public class JWebClient implements JWebAPI {
     }
 
     /**
-     * Set ThreadPoolExecutor used by this client instance
+     * Set ExecutorService used by this client instance
      * @return the current client instance
      */
     @Contract(value = "_->this")
-    public JWebClient withExecutor(final @NotNull ThreadPoolExecutor executor) {
+    public JWebClient withExecutor(final @NotNull ExecutorService executor) {
         setExecutor(executor);
         return this;
     }
 
     /**
-     * Set ThreadPoolExecutor used by this client instance
+     * Set ExecutorService used by this client instance
      */
     @Override
-    public void setExecutor(final @NotNull ThreadPoolExecutor executor) {
+    public void setExecutor(final @NotNull ExecutorService executor) {
         this.executor = executor;
         logger.config(String.format("Set Executor > %s", executor.getClass().getName()));
     }
 
     /**
-     * Get ThreadPoolExecutor used by this client instance
+     * Get ExecutorService used by this client instance
      */
     @Override
-    public ThreadPoolExecutor getExecutor() {
+    public ExecutorService getExecutor() {
         return executor;
     }
 

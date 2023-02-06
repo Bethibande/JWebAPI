@@ -65,8 +65,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
@@ -80,7 +81,7 @@ import static com.bethibande.web.logging.ConsoleColors.*;
  */
 public class JWebServer implements JWebAPI {
 
-    private ThreadPoolExecutor executor;
+    private ExecutorService executor;
     private final HashMap<InetSocketAddress, ServerInterface> interfaces = new HashMap<>();
 
     private Logger logger;
@@ -119,7 +120,7 @@ public class JWebServer implements JWebAPI {
      * Internal method used to initialize default values, caches, processors, handlers, suppliers and more
      */
     private void initValues() {
-        executor = new ScheduledThreadPoolExecutor(10);
+        executor = Executors.newSingleThreadExecutor();
         logger = LoggerFactory.createLogger(this);
         logger.setLevel(Level.OFF);
 
@@ -332,34 +333,34 @@ public class JWebServer implements JWebAPI {
 
     /**
      * Set the executor used by the server.
-     * @see #setExecutor(ThreadPoolExecutor)
+     * @see #setExecutor(ExecutorService)
      * @see #getExecutor()
      */
     @SuppressWarnings("unused")
     @Contract("_->this")
-    public JWebServer withExecutor(ThreadPoolExecutor executor) {
+    public JWebServer withExecutor(ExecutorService executor) {
         setExecutor(executor);
         return this;
     }
 
     /**
      * Set the executor used by the server.
-     * @see #withExecutor(ThreadPoolExecutor)
+     * @see #withExecutor(ExecutorService)
      * @see #getExecutor()
      */
     @Override
-    public void setExecutor(ThreadPoolExecutor executor) {
+    public void setExecutor(ExecutorService executor) {
         this.executor = executor;
     }
 
     /**
      * Get the executor used by the server.
-     * @see #withExecutor(ThreadPoolExecutor)
-     * @see #setExecutor(ThreadPoolExecutor)
+     * @see #withExecutor(ExecutorService)
+     * @see #setExecutor(ExecutorService)
      */
     @SuppressWarnings("unused")
     @Override
-    public ThreadPoolExecutor getExecutor() {
+    public ExecutorService getExecutor() {
         return this.executor;
     }
 

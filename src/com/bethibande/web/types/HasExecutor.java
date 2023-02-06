@@ -1,10 +1,10 @@
 package com.bethibande.web.types;
 
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
 
 public interface HasExecutor {
 
-    ThreadPoolExecutor getExecutor();
-    void setExecutor(final ThreadPoolExecutor executor);
+    ExecutorService getExecutor();
+    void setExecutor(final ExecutorService executor);
 
 }
