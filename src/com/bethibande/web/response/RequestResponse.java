@@ -15,13 +15,29 @@ import java.util.List;
 @SuppressWarnings("unused")
 public class RequestResponse {
 
-    public static RequestResponse redirect(String redirect) {
+    public static RequestResponse STATUS_OK = statusCode(200);
+    public static RequestResponse STATUS_ACCEPTED = statusCode(202);
+    public static RequestResponse STATUS_BAD_REQUEST = statusCode(400);
+    public static RequestResponse STATUS_FORBIDDEN = statusCode(403);
+    public static RequestResponse STATUS_NOT_FOUND = statusCode(404);
+    public static RequestResponse STATUS_METHOD_NOT_ALLOWED = statusCode(405);
+    public static RequestResponse STATUS_PAYLOAD_TOO_LARGE = statusCode(413);
+
+    public static RequestResponse statusCode(final int statusCode) {
+        return new RequestResponse().withStatusCode(statusCode);
+    }
+
+    /**
+     * 301 redirect
+     * @param redirect redirect url
+     */
+    public static RequestResponse redirect(final String redirect) {
         return new RequestResponse()
                 .withLocation(redirect)
                 .withStatusCode(301);
     }
 
-    public static RequestResponse stream(InputStream stream) {
+    public static RequestResponse stream(final InputStream stream) {
         try {
             return stream(stream, stream.available());
         } catch(IOException e) {
@@ -29,14 +45,14 @@ public class RequestResponse {
         }
     }
 
-    public static RequestResponse stream(InputStream stream, long length) {
+    public static RequestResponse stream(final InputStream stream, final long length) {
         return new RequestResponse()
                 .withStatusCode(202)
                 .withContentLength(length)
                 .withContentData(new InputStreamWrapper(stream, length));
     }
 
-    public static RequestResponse file(File file) {
+    public static RequestResponse file(final File file) {
         try {
             InputStream in = new FileInputStream(file);
 
@@ -91,7 +107,7 @@ public class RequestResponse {
     /**
      * @see #setCookie(String, String, long)
      */
-    public RequestResponse withCookie(String cookie, String value, long expirationDate) {
+    public RequestResponse withCookie(final String cookie, final String value, final long expirationDate) {
         setCookie(cookie, value, expirationDate);
         return this;
     }
@@ -99,52 +115,52 @@ public class RequestResponse {
     /**
      * @see #setCookie(String, String)
      */
-    public RequestResponse withCookie(String cookie, String value) {
+    public RequestResponse withCookie(final String cookie, final String value) {
         setCookie(cookie, value);
         return this;
     }
 
-    public RequestResponse withCharset(Charset charset) {
+    public RequestResponse withCharset(final Charset charset) {
         setCharset(charset);
         return this;
     }
 
-    public RequestResponse withLocation(String redirect) {
+    public RequestResponse withLocation(final String redirect) {
         setLocation(redirect);
         return this;
     }
 
-    public RequestResponse withContentType(String contentType) {
+    public RequestResponse withContentType(final String contentType) {
         setContentType(contentType);
         return this;
     }
 
-    public RequestResponse withContentLength(long length) {
+    public RequestResponse withContentLength(final long length) {
         setContentLength(length);
         return this;
     }
 
-    public RequestResponse withStatusCode(int statusCode) {
+    public RequestResponse withStatusCode(final int statusCode) {
         setStatusCode(statusCode);
         return this;
     }
 
-    public RequestResponse withContentData(Object data) {
+    public RequestResponse withContentData(final Object data) {
         setContentData(data);
         return this;
     }
 
-    public RequestResponse withHeader(Headers header) {
+    public RequestResponse withHeader(final Headers header) {
         setHeader(header);
         return this;
     }
 
-    public RequestResponse withHeader(String key, String value) {
+    public RequestResponse withHeader(final String key, final String value) {
         addHeader(key, value);
         return this;
     }
 
-    public RequestResponse withHeader(String key, Object value) {
+    public RequestResponse withHeader(final String key, final Object value) {
         addHeader(key, value.toString());
         return this;
     }
@@ -156,7 +172,7 @@ public class RequestResponse {
      * @param value the value of your cookie, null to delete cookie
      * @param expirationDate unix timestamp in s, expiration date of your cookie
      */
-    public void setCookie(String cookie, String value, long expirationDate) {
+    public void setCookie(final String cookie, final String value, final long expirationDate) {
         if(hasCookie(cookie)) deleteCookie(cookie);
         if(value == null) return;
 
@@ -169,61 +185,61 @@ public class RequestResponse {
      * @param cookie the cookie name
      * @param value the value of your cookie, null to delete cookie
      */
-    public void setCookie(String cookie, String value) {
+    public void setCookie(final String cookie, final String value) {
         if(hasCookie(cookie)) deleteCookie(cookie);
         if(value == null) return;
 
         addHeader("Set-Cookie", cookie + "=" + value + ";");
     }
 
-    public void deleteCookie(String cookie) {
+    public void deleteCookie(final String cookie) {
         List<String> list = header.get("Set-Cookie").stream().filter(str -> !str.toLowerCase().startsWith(cookie.toLowerCase())).toList();
 
         header.remove("Set-Cookie");
         header.put("Set-Cookie", list);
     }
 
-    public boolean hasCookie(String cookie) {
+    public boolean hasCookie(final String cookie) {
         return header.get("Set-Cookie") != null && header.get("Set-Cookie").stream().anyMatch(str -> str.toLowerCase().startsWith(cookie.toLowerCase()));
     }
 
     /**
      * Used when writing strings or objects
      */
-    public void setCharset(Charset charset) {
+    public void setCharset(final Charset charset) {
         this.charset = charset;
     }
 
-    public void setHeader(String key, String value) {
+    public void setHeader(final String key, final String value) {
         header.remove(key);
         header.put(key, List.of(value));
     }
 
-    public void addHeader(String key, String value) {
+    public void addHeader(final String key, final String value) {
         header.add(key, value);
     }
 
-    public void setLocation(String redirect) {
+    public void setLocation(final String redirect) {
         setHeader("Location", redirect);
     }
 
-    public void setContentType(String type) {
+    public void setContentType(final String type) {
         setHeader("Content-Type", type);
     }
 
-    public void setContentLength(long length) {
+    public void setContentLength(final long length) {
         setHeader("Content-Length", String.valueOf(length));
     }
 
-    public void setStatusCode(int statusCode) {
+    public void setStatusCode(final int statusCode) {
         this.statusCode = statusCode;
     }
 
-    public void setHeader(Headers header) {
+    public void setHeader(final Headers header) {
         this.header = header;
     }
 
-    public void setContentData(Object contentData) {
+    public void setContentData(final Object contentData) {
         this.contentData = contentData;
     }
 
